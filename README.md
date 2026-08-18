@@ -1,8 +1,8 @@
-﻿# 📅 Planner Virtual - Produtividade & Organização
+﻿#  Planner Virtual - Produtividade & Organização
 
 Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Programação** na **Universidade Federal do Agreste de Pernambuco (UFAPE)**.
 
-👨‍🏫 **Professor:** Dimas Cassimiro do Nascimento Filho
+ **Professor:** Dimas Cassimiro do Nascimento Filho
 
 ## 👥 Equipe (6 Participantes)
 1. **[Arthur](Link_do_GitHub)**
@@ -15,21 +15,21 @@ Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Pr
 
 ---
 
-## 🚀 Visão Geral do Sistema
+##  Visão Geral do Sistema
 O **Planner Virtual** é uma aplicação focada em maximizar a organização pessoal através de uma interface **altamente visual, moderna e intuitiva**. Sabendo que a apresentação visual e a experiência do usuário são cruciais, o sistema conta com um Painel Analítico rico, categorização em cores e feedback imediato de produtividade.
 
-## 🎯 Funcionalidades Principais (Foco na Apresentação)
+##  Funcionalidades Principais (Meta de Funcionalidades)
 
-*   📊 **Painel Analítico (Dashboard):** Visão geral do dia com tarefas pendentes, metas em andamento, lembretes próximos e um **Indicador Geral de Produtividade** em formato de gráfico.
-*   ✅ **Gestão de Tarefas (Time-blocking):** Criação de tarefas divididas por blocos de tempo (30 min, 1h) ou turnos.
-*   🎨 **Categorização Visual (Cores):** Tarefas e metas coloridas por categoria (Faculdade, Trabalho, Saúde, Lazer, Projetos Pessoais, Estudos) para rápida identificação.
-*   🏆 **Metas Estratégicas:** Definição de metas para a semana, mês e ano, com status de progressão (Cumprida, Parcialmente, Não cumprida).
-*   🔔 **Lembretes Inteligentes:** Alertas únicos ou recorrentes para reuniões, compras, exercícios, etc.
-*   📈 **Relatórios de Desempenho:** Geração de estatísticas mostrando as semanas, meses e turnos mais produtivos.
+*    **Painel Analítico (Dashboard):** Visão geral do dia com tarefas pendentes, metas em andamento, lembretes próximos e um **Indicador Geral de Produtividade** em formato de gráfico.
+*    **Gestão de Tarefas (Time-blocking):** Criação de tarefas divididas por blocos de tempo (30 min, 1h) ou turnos.
+*    **Categorização Visual (Cores):** Tarefas e metas coloridas por categoria (Faculdade, Trabalho, Saúde, Lazer, Projetos Pessoais, Estudos) para rápida identificação.
+*    **Metas Estratégicas:** Definição de metas para a semana, mês e ano, com status de progressão (Cumprida, Parcialmente, Não cumprida).
+*    **Lembretes Inteligentes:** Alertas únicos ou recorrentes para reuniões, compras, exercícios, etc.
+*    **Relatórios de Desempenho:** Geração de estatísticas mostrando as semanas, meses e turnos mais produtivos.
 
 ---
 
-## 🛠️ Stack Tecnológica & Arquitetura
+##  Stack Tecnológica & Arquitetura
 
 Como padrão adotado pela equipe (conforme projetos anteriores modulares):
 *   **Frontend:** `TypeScript` (React) + `Tailwind CSS` (Garante uma interface extremamente bonita e responsiva).
