@@ -5,7 +5,7 @@ Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Pr
  **Professor:** Dimas Cassimiro do Nascimento Filho
 
 ## 👥 Equipe (7 Participantes)
-1. **[Arthur](Link_do_GitHub)**
+1. **[Arthur Oliveira Ramos](https://github.com/thuramos)**
 2. **[Alvaro](Link_do_GitHub)**
 3. **[Carlos Gabryel Alves Espinhara](https://github.com/cgabryel0)**
 4. **[Carlos Lucas Feitoza](Link_do_GitHub)**
