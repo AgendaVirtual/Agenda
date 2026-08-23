@@ -76,4 +76,4 @@ curl -s -X PATCH "$BASE/goals/$GOAL_ID/status" \
 echo ""
 
 echo ""
-echo "Teste finalizado."
+echo "Teste finalizado!"
