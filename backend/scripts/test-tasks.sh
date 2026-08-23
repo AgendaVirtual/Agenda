@@ -8,10 +8,7 @@ set -e
 BASE="http://localhost:3000/api"
 
 echo "== 1. Pegando uma categoria válida =="
-CATEGORY_ID=$(curl -s "$BASE/categories" | node -e "
-  let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{
-    const r=JSON.parse(d); console.log(r.data[0].id);
-  })")
+CATEGORY_ID=$(curl -s "$BASE/categories" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"$//')
 echo "categoryId: $CATEGORY_ID"
 
 echo ""
@@ -20,7 +17,7 @@ TASK=$(curl -s -X POST "$BASE/tasks" \
   -H "Content-Type: application/json" \
   -d "{\"description\":\"Tarefa teste\",\"categoryId\":\"$CATEGORY_ID\",\"date\":\"2026-08-25\",\"timeBlockType\":\"UMA_HORA\",\"time\":\"09:00\",\"priority\":\"ALTA\"}")
 echo "$TASK"
-TASK_ID=$(echo "$TASK" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).data.id))")
+TASK_ID=$(echo "$TASK" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"$//')
 
 echo ""
 echo "== 3. Testando validação: categoria inexistente (deve dar erro) =="
