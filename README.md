@@ -9,7 +9,7 @@ Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Pr
 2. **[Alvaro](Link_do_GitHub)**
 3. **[Carlos Gabryel Alves Espinhara](https://github.com/cgabryel0)**
 4. **[Carlos Lucas Feitoza](Link_do_GitHub)**
-5. **[Heloisa](Link_do_GitHub)**
+5. **[Maria Heoísa da Silva Montebelo](Link_do_GitHub)**
 6. **[Laura Vitória Mendes](Link_do_GitHub)**
 7. **[Riana](Link_do_GitHub)**
 
