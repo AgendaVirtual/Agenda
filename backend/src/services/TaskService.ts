@@ -1,4 +1,5 @@
 import { FileRepository } from "../persistence/FileRepository";
+import { CategoryRepository } from "./CategoryService";
 import { CreateTaskDTO, Task } from "../types/entities";
 import { TaskStatus, TimeBlockType } from "../types/enums";
 import { AppError } from "../utils/errors";
@@ -26,7 +27,18 @@ function validateTimeBlock(data: CreateTaskDTO) {
 }
 
 export class TaskService {
-  constructor(private repository = new TaskRepository()) {}
+  constructor(
+    private repository = new TaskRepository(),
+    private categoryRepository = new CategoryRepository()
+  ) {}
+
+  // Garante que a categoria informada realmente existe (integração com P3)
+  private async validateCategoryExists(categoryId: string): Promise<void> {
+    const category = await this.categoryRepository.findById(categoryId);
+    if (!category) {
+      throw new AppError(`Categoria "${categoryId}" não existe`);
+    }
+  }
 
   // Detecta conflito de horário no mesmo dia
   private async checkOverlap(
@@ -47,6 +59,7 @@ export class TaskService {
 
   async create(data: CreateTaskDTO): Promise<Task> {
     validateTimeBlock(data);
+    await this.validateCategoryExists(data.categoryId);
     await this.checkOverlap(data);
     return this.repository.create({ ...data, status: TaskStatus.PENDENTE });
   }
