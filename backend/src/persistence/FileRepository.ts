@@ -10,7 +10,9 @@ export interface IRepository<T extends { id: string }> {
   delete(id: string): Promise<boolean>;
 }
 
-const DATA_DIR = path.join(__dirname, "..", "..", "data");
+const DATA_DIR = process.env.PLANNER_DATA_DIR
+  ? path.resolve(process.env.PLANNER_DATA_DIR)
+  : path.join(__dirname, "..", "..", "data");
 
 async function readJsonFile<T>(filePath: string): Promise<T[]> {
   try {

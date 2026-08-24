@@ -1,5 +1,5 @@
 import { FileRepository } from "../persistence/FileRepository";
-import { CategoryRepository } from "./CategoryService";
+import { CategoryRepository } from "../repositories/CategoryRepository";
 import { CreateTaskDTO, Task } from "../types/entities";
 import { TaskStatus, TimeBlockType } from "../types/enums";
 import { AppError } from "../utils/errors";
