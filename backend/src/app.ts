@@ -4,7 +4,8 @@ import goalRoutes from "./controllers/GoalController";
 import taskRoutes from "./controllers/TaskController";
 import categoryRoutes from "./controllers/CategoryController";
 import reminderRoutes from "./controllers/ReminderController";
-import { reportRouter, dashboardRouter } from "./controllers/ReportController";
+import reportRoutes from "./controllers/ReportController";
+import dashboardRoutes from "./controllers/DashboardController";
 import { errorHandler } from "./utils/errors";
 
 const app = express();
@@ -16,8 +17,8 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reminders", reminderRoutes);
-app.use("/api/reports", reportRouter);
-app.use("/api/dashboard", dashboardRouter);
+app.use("/api/reports", reportRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/health", (_req, res) => res.json({ success: true }));
 

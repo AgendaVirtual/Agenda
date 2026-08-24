@@ -1,77 +1,147 @@
-import { TaskRepository } from "./TaskService";
 import { GoalRepository } from "../repositories/GoalRepository";
-import { ReportDTO } from "../types/entities";
-import { GoalStatus, Shift, TaskStatus } from "../types/enums";
+import { TaskRepository } from "./TaskService";
+import { Goal, ReportDTO, ReportType, Task } from "../types/entities";
+import { GoalPeriod } from "../types/enums";
+import { AppError } from "../utils/errors";
+import {
+  calculateCompletionRate,
+  calculateReportRange,
+  findMostProductivePeriod,
+  findMostProductiveShift,
+  getISOWeekKey,
+  getMonthKey,
+  groupByCategory,
+  isGoalCompleted,
+  isTaskExecuted,
+  isValidISODate,
+} from "../utils/reportCalculations";
 
-function calculateCompletionRate(done: number, total: number): number {
-  if (total === 0) return 0;
-  return Number((done / total).toFixed(2));
+interface TaskReader {
+  findAll(): Promise<Task[]>;
 }
 
-function findMostProductiveShift(
-  tasks: { shift?: Shift; status: TaskStatus }[]
-): Shift | null {
-  const byShift: Record<string, { done: number; total: number }> = {};
-  for (const t of tasks) {
-    if (!t.shift) continue;
-    byShift[t.shift] ??= { done: 0, total: 0 };
-    byShift[t.shift].total += 1;
-    if (t.status === TaskStatus.EXECUTADA) byShift[t.shift].done += 1;
-  }
-  let best: Shift | null = null;
-  let bestRate = -1;
-  for (const [shift, stats] of Object.entries(byShift)) {
-    const rate = calculateCompletionRate(stats.done, stats.total);
-    if (rate > bestRate) {
-      bestRate = rate;
-      best = shift as Shift;
-    }
-  }
-  return best;
+interface GoalReader {
+  findAll(): Promise<Goal[]>;
 }
 
-function groupByCategory(
-  tasks: { categoryId: string }[]
-): { categoryId: string; count: number }[] {
-  const counts: Record<string, number> = {};
-  for (const t of tasks) {
-    counts[t.categoryId] = (counts[t.categoryId] ?? 0) + 1;
-  }
-  return Object.entries(counts)
-    .map(([categoryId, count]) => ({ categoryId, count }))
-    .sort((a, b) => b.count - a.count);
-}
+const REPORT_TYPES: ReportType[] = ["weekly", "monthly", "yearly"];
+
+const GOAL_PERIOD_BY_REPORT: Record<ReportType, GoalPeriod> = {
+  weekly: GoalPeriod.SEMANAL,
+  monthly: GoalPeriod.MENSAL,
+  yearly: GoalPeriod.ANUAL,
+};
 
 export class ReportService {
   constructor(
-    private taskRepository = new TaskRepository(),
-    private goalRepository = new GoalRepository()
+    private taskRepository: TaskReader = new TaskRepository(),
+    private goalRepository: GoalReader = new GoalRepository()
   ) {}
 
-  async generate(
-    period: "weekly" | "monthly" | "yearly"
-  ): Promise<ReportDTO> {
-    // Filtro real por período (data) deve ser adicionado conforme a Etapa 4;
-    // por ora considera todos os registros existentes.
-    const tasks = await this.taskRepository.findAll();
-    const goals = await this.goalRepository.findAll();
+  async generate(typeValue?: string, dateValue?: string): Promise<ReportDTO> {
+    const type = this.validateType(typeValue ?? "weekly");
+    const referenceDate = this.normalizeReferenceDate(type, dateValue);
+    const { startDate, endDate } = calculateReportRange(type, referenceDate);
 
-    const tasksDone = tasks.filter(
-      (t) => t.status === TaskStatus.EXECUTADA
-    ).length;
-    const goalsDone = goals.filter(
-      (g) => g.status === GoalStatus.CUMPRIDA
-    ).length;
+    const [allTasks, allGoals] = await Promise.all([
+      this.taskRepository.findAll(),
+      this.goalRepository.findAll(),
+    ]);
 
-    const topCategories = groupByCategory(tasks);
+    const tasks = allTasks.filter(
+      (task) => task.date >= startDate && task.date <= endDate
+    );
+
+    const expectedGoalPeriod = GOAL_PERIOD_BY_REPORT[type];
+    const goals = allGoals.filter(
+      (goal) =>
+        goal.period === expectedGoalPeriod &&
+        goal.startDate <= endDate &&
+        goal.endDate >= startDate
+    );
+
+    const executedTasks = tasks.filter(isTaskExecuted);
+    const completedGoals = goals.filter(isGoalCompleted);
+
+    const topTaskCategories = groupByCategory(executedTasks);
+    const topGoalCategories = groupByCategory(completedGoals);
 
     return {
-      period,
-      goalsCompletionRate: calculateCompletionRate(goalsDone, goals.length),
-      tasksCompletionRate: calculateCompletionRate(tasksDone, tasks.length),
+      period: type,
+      startDate,
+      endDate,
+
+      goalsTotal: goals.length,
+      goalsCompleted: completedGoals.length,
+      goalsCompletionRate: calculateCompletionRate(goals, isGoalCompleted),
+
+      tasksTotal: tasks.length,
+      tasksExecuted: executedTasks.length,
+      tasksCompletionRate: calculateCompletionRate(tasks, isTaskExecuted),
+
+      mostProductivePeriod: this.findMostProductivePeriod(type, tasks),
       mostProductiveShift: findMostProductiveShift(tasks),
-      mostProductiveCategory: topCategories[0]?.categoryId ?? null,
-      topTaskCategories: topCategories,
+      mostProductiveCategory: topTaskCategories[0]?.categoryId ?? null,
+      topTaskCategories,
+      topGoalCategories,
     };
+  }
+
+  private findMostProductivePeriod(
+    type: ReportType,
+    tasks: Task[]
+  ): string | null {
+    if (type === "weekly") return null;
+
+    return type === "monthly"
+      ? findMostProductivePeriod(tasks, getISOWeekKey)
+      : findMostProductivePeriod(tasks, getMonthKey);
+  }
+
+  private validateType(value: string): ReportType {
+    if (!REPORT_TYPES.includes(value as ReportType)) {
+      throw new AppError(
+        'O parâmetro "type" deve ser weekly, monthly ou yearly'
+      );
+    }
+
+    return value as ReportType;
+  }
+
+  /**
+   * Compatibilidade com o contrato do PDF:
+   * - weekly:  YYYY-MM-DD
+   * - monthly: YYYY-MM ou YYYY-MM-DD
+   * - yearly:  YYYY ou YYYY-MM-DD
+   *
+   * Se date não for informado, usa a data atual do servidor.
+   */
+  private normalizeReferenceDate(
+    type: ReportType,
+    value?: string
+  ): string {
+    if (!value) return new Date().toISOString().slice(0, 10);
+
+    const trimmed = value.trim();
+
+    if (isValidISODate(trimmed)) return trimmed;
+
+    if (type === "monthly" && /^\d{4}-\d{2}$/.test(trimmed)) {
+      const candidate = `${trimmed}-01`;
+      if (isValidISODate(candidate)) return candidate;
+    }
+
+    if (type === "yearly" && /^\d{4}$/.test(trimmed)) {
+      return `${trimmed}-01-01`;
+    }
+
+    const expected =
+      type === "weekly"
+        ? "YYYY-MM-DD"
+        : type === "monthly"
+          ? "YYYY-MM ou YYYY-MM-DD"
+          : "YYYY ou YYYY-MM-DD";
+
+    throw new AppError(`O parâmetro "date" deve estar no formato ${expected}`);
   }
 }
