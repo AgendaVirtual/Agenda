@@ -63,13 +63,39 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// A divisão não define um enum novo para relatório. Mantemos apenas o tipo
+// textual aceito pela API, reutilizando os enums já existentes do projeto.
+export type ReportType = "weekly" | "monthly" | "yearly";
+
+export interface CategoryCountDTO {
+  categoryId: string;
+  count: number;
+}
+
 export interface ReportDTO {
-  period: "weekly" | "monthly" | "yearly";
+  period: ReportType;
+  startDate: string;
+  endDate: string;
+
+  goalsTotal: number;
+  goalsCompleted: number;
   goalsCompletionRate: number;
+
+  tasksTotal: number;
+  tasksExecuted: number;
   tasksCompletionRate: number;
+
+  // monthly -> semana mais produtiva; yearly -> mês mais produtivo.
+  // weekly não possui um período menor exigido pela especificação.
+  mostProductivePeriod: string | null;
   mostProductiveShift: Shift | null;
+
+  // Mantido por compatibilidade com o formato que já existia no Agenda.
+  // O valor é o categoryId da categoria de tarefas executadas mais frequente.
   mostProductiveCategory: string | null;
-  topTaskCategories: { categoryId: string; count: number }[];
+
+  topTaskCategories: CategoryCountDTO[];
+  topGoalCategories: CategoryCountDTO[];
 }
 
 export interface DashboardSummaryDTO {

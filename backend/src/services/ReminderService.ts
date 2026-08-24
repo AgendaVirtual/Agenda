@@ -1,13 +1,7 @@
-import { FileRepository } from "../persistence/FileRepository";
 import { CreateReminderDTO, Reminder } from "../types/entities";
+import { ReminderRepository } from "../repositories/ReminderRepository";
 import { ReminderRecurrence } from "../types/enums";
 import { AppError } from "../utils/errors";
-
-export class ReminderRepository extends FileRepository<Reminder> {
-  constructor() {
-    super("reminders.json");
-  }
-}
 
 function validateReminderFields(data: CreateReminderDTO) {
   if (data.recurrence === ReminderRecurrence.RECORRENTE_SEMANAL && data.dayOfWeek === undefined) {
