@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { DashboardService } from "../services/DashboardService";
 import { asyncHandler } from "../utils/errors";
+import { parseOptionalDashboardDateQuery } from "../utils/validation";
 
 export function createDashboardRouter(
   dashboardService = new DashboardService()
@@ -9,8 +10,9 @@ export function createDashboardRouter(
 
   router.get(
     "/today",
-    asyncHandler(async (_req, res) => {
-      const summary = await dashboardService.getToday();
+    asyncHandler(async (req, res) => {
+      const date = parseOptionalDashboardDateQuery(req.query.date);
+      const summary = await dashboardService.getToday(date);
       res.json({ success: true, data: summary });
     })
   );

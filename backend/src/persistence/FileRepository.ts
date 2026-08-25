@@ -60,7 +60,9 @@ export class FileRepository<T extends { id: string }>
     const all = await this.findAll();
     const index = all.findIndex((item) => item.id === id);
     if (index === -1) return undefined;
-    all[index] = { ...all[index], ...data };
+    const current = all[index];
+    // O id é a identidade do registro e nunca pode ser alterado por update.
+    all[index] = { ...current, ...data, id: current.id };
     await writeJsonFile(this.filePath, all);
     return all[index];
   }

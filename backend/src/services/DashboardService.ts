@@ -15,6 +15,7 @@ import {
 import {
   addDays,
   calculateProductivityIndex,
+  getLocalISODate,
   isValidISODate,
 } from "../utils/reportCalculations";
 import { AppError } from "../utils/errors";
@@ -41,7 +42,7 @@ export class DashboardService {
   ) {}
 
   async getToday(referenceDate?: string): Promise<DashboardSummaryDTO> {
-    const today = referenceDate ?? new Date().toISOString().slice(0, 10);
+    const today = referenceDate ?? getLocalISODate();
 
     if (!isValidISODate(today)) {
       throw new AppError("Data de referência inválida; use YYYY-MM-DD");
