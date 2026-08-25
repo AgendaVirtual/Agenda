@@ -1,5 +1,5 @@
 import { FileRepository } from "../persistence/FileRepository";
-import { CategoryRepository } from "./CategoryService";
+import { CategoryRepository } from "../repositories/CategoryRepository";
 import { CreateTaskDTO, Task } from "../types/entities";
 import { Shift, TaskPriority, TaskStatus, TimeBlockType } from "../types/enums";
 import { AppError } from "../utils/errors";
@@ -12,6 +12,31 @@ export class TaskRepository extends FileRepository<Task> {
 }
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+const TASK_WRITE_FIELDS = new Set([
+  "description",
+  "categoryId",
+  "date",
+  "timeBlockType",
+  "time",
+  "shift",
+  "priority",
+]);
+
+function validateTaskWriteShape(data: unknown, allowEmpty: boolean): void {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new AppError("Dados da tarefa são obrigatórios");
+  }
+
+  const keys = Object.keys(data);
+  if (!allowEmpty && keys.length === 0) {
+    throw new AppError("Informe ao menos um campo para atualizar a tarefa");
+  }
+
+  const invalid = keys.filter((key) => !TASK_WRITE_FIELDS.has(key));
+  if (invalid.length > 0) {
+    throw new AppError(`Campo(s) não permitido(s): ${invalid.join(", ")}`);
+  }
+}
 
 function isEnumValue<T extends string>(
   enumObject: Record<string, T>,
@@ -86,6 +111,7 @@ export class TaskService {
   }
 
   async create(data: CreateTaskDTO): Promise<Task> {
+    validateTaskWriteShape(data, true);
     validateTaskData(data);
     await this.validateCategoryExists(data.categoryId);
     await this.checkOverlap(data);
@@ -125,6 +151,7 @@ export class TaskService {
         "O status deve ser alterado pela rota específica de status"
       );
     }
+    validateTaskWriteShape(data, false);
 
     const current = await this.repository.findById(id);
     if (!current) throw new AppError("Tarefa não encontrada", 404);

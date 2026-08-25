@@ -3,6 +3,8 @@ import {
   CreateGoalDTO,
   CreateReminderDTO,
   CreateTaskDTO,
+  UpdateCategoryDTO,
+  UpdateReminderDTO,
 } from "../types/entities";
 import {
   GoalPeriod,
@@ -240,8 +242,8 @@ export function parseCreateCategoryBody(body: unknown): CreateCategoryDTO {
   const data = asObject(body);
   rejectUnknownFields(data, ["name", "color"]);
 
-  const color = requiredString(data, "color", "Cor");
-  if (!HEX_COLOR_PATTERN.test(color)) {
+  const color = optionalString(data, "color", "Cor");
+  if (color !== undefined && !HEX_COLOR_PATTERN.test(color)) {
     throw new AppError("Cor deve estar no formato hexadecimal #RRGGBB");
   }
 
@@ -249,6 +251,29 @@ export function parseCreateCategoryBody(body: unknown): CreateCategoryDTO {
     name: requiredString(data, "name", "Nome da categoria"),
     color,
   };
+}
+
+export function parseUpdateCategoryBody(body: unknown): UpdateCategoryDTO {
+  const data = asObject(body);
+  rejectUnknownFields(data, ["name", "color"]);
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError("Informe ao menos um campo para atualizar a categoria");
+  }
+
+  const result: UpdateCategoryDTO = {};
+  if ("name" in data) {
+    result.name = requiredString(data, "name", "Nome da categoria");
+  }
+  if ("color" in data) {
+    const color = requiredString(data, "color", "Cor");
+    if (!HEX_COLOR_PATTERN.test(color)) {
+      throw new AppError("Cor deve estar no formato hexadecimal #RRGGBB");
+    }
+    result.color = color;
+  }
+
+  return result;
 }
 
 export function parseCreateReminderBody(body: unknown): CreateReminderDTO {
@@ -290,12 +315,91 @@ export function parseCreateReminderBody(body: unknown): CreateReminderDTO {
   return result;
 }
 
+
+export function parseUpdateReminderBody(body: unknown): UpdateReminderDTO {
+  const data = asObject(body);
+  rejectUnknownFields(data, [
+    "description",
+    "type",
+    "recurrence",
+    "dayOfWeek",
+    "date",
+    "time",
+  ]);
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError("Informe ao menos um campo para atualizar o lembrete");
+  }
+
+  const result: UpdateReminderDTO = {};
+  if ("description" in data) {
+    result.description = requiredString(data, "description", "Descrição");
+  }
+  if ("type" in data) {
+    result.type = enumValue(data.type, ReminderType, "Tipo de lembrete");
+  }
+  if ("recurrence" in data) {
+    result.recurrence = enumValue(
+      data.recurrence,
+      ReminderRecurrence,
+      "Recorrência"
+    );
+  }
+  if ("dayOfWeek" in data) {
+    result.dayOfWeek = integerInRange(data.dayOfWeek, 0, 6, "dayOfWeek");
+  }
+  if ("date" in data) {
+    result.date = isoDate(data.date, "Data");
+  }
+  if ("time" in data) {
+    result.time = timeValue(data.time, "Horário");
+  }
+
+  if (
+    result.recurrence === ReminderRecurrence.UNICO &&
+    result.dayOfWeek !== undefined
+  ) {
+    throw new AppError("Lembrete único não deve informar dayOfWeek");
+  }
+  if (
+    result.recurrence === ReminderRecurrence.RECORRENTE_SEMANAL &&
+    result.date !== undefined
+  ) {
+    throw new AppError("Lembrete recorrente semanal não deve informar date");
+  }
+
+  return result;
+}
+
+export function parsePositiveDaysQuery(
+  value: unknown,
+  defaultValue = 7
+): number {
+  if (value === undefined) return defaultValue;
+  if (typeof value !== "string" || !/^[1-9]\d*$/.test(value)) {
+    throw new AppError('O parâmetro "days" deve ser um inteiro positivo');
+  }
+
+  const days = Number(value);
+  if (!Number.isSafeInteger(days)) {
+    throw new AppError('O parâmetro "days" deve ser um inteiro positivo');
+  }
+  return days;
+}
+
 export function parseOptionalTaskDateQuery(value: unknown): string | undefined {
   if (value === undefined) return undefined;
   return isoDate(value, "Data");
 }
 
 export function parseOptionalDashboardDateQuery(
+  value: unknown
+): string | undefined {
+  if (value === undefined) return undefined;
+  return isoDate(value, "Data de referência");
+}
+
+export function parseOptionalReminderDateQuery(
   value: unknown
 ): string | undefined {
   if (value === undefined) return undefined;
