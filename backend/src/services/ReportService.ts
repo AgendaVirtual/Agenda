@@ -9,6 +9,7 @@ import {
   findMostProductivePeriod,
   findMostProductiveShift,
   getISOWeekKey,
+  getLocalISODate,
   getMonthKey,
   groupByCategory,
   isGoalCompleted,
@@ -120,7 +121,7 @@ export class ReportService {
     type: ReportType,
     value?: string
   ): string {
-    if (!value) return new Date().toISOString().slice(0, 10);
+    if (!value) return getLocalISODate();
 
     const trimmed = value.trim();
 

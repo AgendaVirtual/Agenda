@@ -38,13 +38,20 @@ em `backend/data/*.json` (criado na primeira escrita).
 | POST   | /api/categories                  |
 | GET    | /api/categories                   |
 | POST   | /api/reminders                     |
-| GET    | /api/reminders?upcoming=true        |
+| GET    | /api/reminders (todos) / ?upcoming=true (próximos) |
 | DELETE | /api/reminders/:id                   |
 | GET    | /api/reports?type=weekly\|monthly\|yearly |
-| GET    | /api/dashboard/today                   |
+| GET    | /api/dashboard/today?date=YYYY-MM-DD (date opcional) |
+
+## Validação e integridade
+
+As entradas de tarefas, metas, categorias e lembretes são validadas no limite HTTP.
+IDs não podem ser sobrescritos em updates, status só aceitam valores dos enums e datas
+usam formato ISO `YYYY-MM-DD`. O `PUT /api/tasks/:id` revalida categoria, bloco de
+tempo e conflito antes de persistir.
 
 ## O que falta (ajustar quando o grupo definir a divisão)
 
 - Filtrar relatórios por data real (hoje pega todos os registros)
 - Testes unitários por serviço
-- Validações adicionais conforme o time for combinando o contrato final (seção 6 do PDF)
+- Ajustes adicionais apenas se o time alterar o contrato final (seção 6 do PDF)
