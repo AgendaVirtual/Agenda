@@ -1,11 +1,31 @@
 import { GoalRepository } from "../repositories/GoalRepository";
-import { CategoryRepository } from "./CategoryService";
+import { CategoryRepository } from "../repositories/CategoryRepository";
 import { CreateGoalDTO, Goal } from "../types/entities";
 import { GoalPeriod, GoalStatus } from "../types/enums";
 import { AppError } from "../utils/errors";
 import { isValidISODate } from "../utils/reportCalculations";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const GOAL_CREATE_FIELDS = new Set([
+  "description",
+  "categoryId",
+  "period",
+  "startDate",
+  "endDate",
+]);
+
+function validateGoalCreateShape(data: unknown): void {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new AppError("Dados da meta são obrigatórios");
+  }
+
+  const invalid = Object.keys(data).filter(
+    (key) => !GOAL_CREATE_FIELDS.has(key)
+  );
+  if (invalid.length > 0) {
+    throw new AppError(`Campo(s) não permitido(s): ${invalid.join(", ")}`);
+  }
+}
 
 // Faixa de dias tolerada para cada período, com uma margem
 // razoável (ex: mês pode ter 28 a 31 dias).
@@ -71,6 +91,7 @@ export class GoalService {
   }
 
   async create(data: CreateGoalDTO): Promise<Goal> {
+    validateGoalCreateShape(data);
     if (typeof data.description !== "string" || data.description.trim().length === 0) {
       throw new AppError("Descrição é obrigatória");
     }

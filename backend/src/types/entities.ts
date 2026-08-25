@@ -54,8 +54,15 @@ export type UpdateGoalStatusDTO = { status: GoalStatus };
 export type CreateTaskDTO = Omit<Task, "id" | "status">;
 export type UpdateTaskStatusDTO = { status: TaskStatus };
 
-export type CreateCategoryDTO = Omit<Category, "id">;
+export type CreateCategoryDTO = Omit<Category, "id" | "color"> & {
+  color?: string;
+};
+
+export type UpdateCategoryDTO = Partial<CreateCategoryDTO>;
+
 export type CreateReminderDTO = Omit<Reminder, "id">;
+
+export type UpdateReminderDTO = Partial<CreateReminderDTO>;
 
 export interface ApiResponse<T> {
   success: boolean;
