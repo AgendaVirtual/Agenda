@@ -16,6 +16,7 @@ import {
   isTaskExecuted,
   isValidISODate,
 } from "../utils/reportCalculations";
+import { criarRepositorioDeMetas, criarRepositorioDeTarefas } from "../persistence/repositorios";
 
 interface TaskReader {
   findAll(): Promise<Task[]>;
@@ -35,8 +36,8 @@ const GOAL_PERIOD_BY_REPORT: Record<ReportType, GoalPeriod> = {
 
 export class ReportService {
   constructor(
-    private taskRepository: TaskReader = new TaskRepository(),
-    private goalRepository: GoalReader = new GoalRepository()
+    private taskRepository: TaskReader = criarRepositorioDeTarefas(),
+    private goalRepository: GoalReader = criarRepositorioDeMetas()
   ) {}
 
   async generate(typeValue?: string, dateValue?: string): Promise<ReportDTO> {

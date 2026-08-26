@@ -54,18 +54,22 @@ são diferentes das de desenvolvimento (5173 e 3000) para os dois conviverem.
 Dois serviços a partir deste repositório. O que muda entre eles é o **Root
 Directory**; cada um já traz `Dockerfile` e `railway.json`.
 
+Some um serviço de **PostgreSQL** do próprio Railway e ligue-o ao backend.
+
 | Serviço | Root Directory | Variáveis |
 |---|---|---|
-| backend | `backend` | `PLANNER_DATA_DIR=/app/data`, e monte um volume nesse caminho |
+| backend | `backend` | `DATABASE_URL` (vem do Postgres ao ligar os serviços) |
 | frontend | `frontend` | `API_URL=https://SEU-BACKEND.up.railway.app` (sem `/api` no fim) |
 
-`PORT` é injetada pelo Railway nos dois; não defina à mão.
+`PORT` é injetada pelo Railway nos dois; não defina à mão. Se o banco estiver
+fora da rede interna do Railway, acrescente `PGSSL=require` no backend.
 
 Três pontos que não são adivinháveis:
 
-- **O volume é obrigatório.** O disco do contêiner é efêmero e a persistência é
-  em arquivo JSON, então sem volume cada publicação apaga tarefas, metas e
-  lembretes.
+- **Sem banco, o app cai para arquivo JSON.** É o modo local de quem roda sem
+  Docker. Em hospedagem isso perderia tudo a cada publicação, porque o disco do
+  contêiner é efêmero: é justamente por isso que existe o Postgres. O esquema é
+  aplicado sozinho na subida.
 - **O fuso vai na imagem** (`TZ=America/Recife`, já no Dockerfile). Um contêiner
   sobe em UTC, e o backend calcula "hoje" pela hora local: sem isso, os
   lembretes de hoje somem toda noite a partir das 21h.

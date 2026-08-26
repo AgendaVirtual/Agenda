@@ -1,12 +1,29 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nexo
+      POSTGRES_PASSWORD: nexo
+      POSTGRES_DB: nexo
+    volumes:
+      - nexo-pg:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexo -d nexo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
   backend:
     build: ./backend
     environment:
       PORT: 3000
-      PLANNER_DATA_DIR: /app/data
+      DATABASE_URL: postgres://nexo:nexo@db:5432/nexo
       TZ: America/Recife
-    volumes:
-      - planner-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "3100:3000"
 
@@ -21,4 +38,4 @@ services:
       - backend
 
 volumes:
-  planner-data:
+  nexo-pg:
