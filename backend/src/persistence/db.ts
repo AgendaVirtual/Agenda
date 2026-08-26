@@ -82,9 +82,14 @@ CREATE TABLE IF NOT EXISTS tasks (
   date             DATE NOT NULL,
   time_block_type  TEXT NOT NULL,
   time             TEXT,
+  end_time         TEXT,
   shift            TEXT,
   status           TEXT NOT NULL,
-  priority         TEXT NOT NULL
+  priority         TEXT NOT NULL,
+  recurrence           TEXT NOT NULL DEFAULT 'UNICA',
+  recurrence_group_id  UUID,
+  alert_enabled        BOOLEAN NOT NULL DEFAULT FALSE,
+  alert_lead_minutes   INTEGER NOT NULL DEFAULT 30
 );
 
 CREATE TABLE IF NOT EXISTS goals (
@@ -123,6 +128,14 @@ ALTER TABLE categories ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON 
 ALTER TABLE tasks      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE goals      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE reminders  ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+`;
+
+const MIGRACAO_TEMPO = `
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS end_time TEXT;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence TEXT NOT NULL DEFAULT 'UNICA';
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence_group_id UUID;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS alert_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS alert_lead_minutes INTEGER NOT NULL DEFAULT 30;
 `;
 
 const MIGRACAO_SEQ = `
@@ -181,5 +194,6 @@ export async function migrar(): Promise<void> {
   }
 
   await query(MIGRACAO_SEQ);
+  await query(MIGRACAO_TEMPO);
   await query(INDICES);
 }

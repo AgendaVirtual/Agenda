@@ -6,6 +6,10 @@ export function getTasksByDate(date: string): Promise<Task[]> {
   return request<Task[]>(`/tasks?date=${encodeURIComponent(date)}`);
 }
 
+export function getAllTasks(): Promise<Task[]> {
+  return request<Task[]>("/tasks");
+}
+
 export function createTask(data: CreateTaskDTO): Promise<Task> {
   return request<Task>("/tasks", {
     method: "POST",
@@ -30,6 +34,9 @@ export function updateTaskStatus(
   });
 }
 
-export function deleteTask(id: string): Promise<void> {
-  return request<void>(`/tasks/${id}`, { method: "DELETE" });
+export function deleteTask(
+  id: string,
+  escopo: "unica" | "serie" = "unica",
+): Promise<void> {
+  return request<void>(`/tasks/${id}?escopo=${escopo}`, { method: "DELETE" });
 }

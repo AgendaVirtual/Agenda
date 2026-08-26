@@ -68,13 +68,13 @@ async function semear() {
   const hoje = emDias(0);
 
   const doDia = [
-    { description: "Academia", categoryId: SAU, date: hoje, timeBlockType: "UMA_HORA", time: "07:00", priority: "MEDIA" },
-    { description: "Revisar slides da apresentação de PLP", categoryId: FAC, date: hoje, timeBlockType: "UMA_HORA", time: "08:00", priority: "ALTA" },
-    { description: "Reunião de alinhamento do grupo", categoryId: FAC, date: hoje, timeBlockType: "MEIA_HORA", time: "10:30", priority: "ALTA" },
-    { description: "Estudar paradigma funcional", categoryId: EST, date: hoje, timeBlockType: "TURNO", shift: "TARDE", priority: "ALTA" },
-    { description: "Responder e-mails do estágio", categoryId: TRA, date: hoje, timeBlockType: "MEIA_HORA", time: "14:00", priority: "MEDIA" },
-    { description: "Série com a família", categoryId: LAZ, date: hoje, timeBlockType: "TURNO", shift: "NOITE", priority: "BAIXA" },
-    { description: "Commit da tela de metas", categoryId: PRO, date: hoje, timeBlockType: "UMA_HORA", time: "20:00", priority: "ALTA" },
+    { description: "Academia", categoryId: SAU, date: hoje, time: "07:00", endTime: "08:00", priority: "MEDIA" },
+    { description: "Revisar slides da apresentação de PLP", categoryId: FAC, date: hoje, time: "08:15", endTime: "09:15", priority: "ALTA", alertEnabled: true, alertLeadMinutes: 30 },
+    { description: "Reunião de alinhamento do grupo", categoryId: FAC, date: hoje, time: "10:30", endTime: "11:00", priority: "ALTA", alertEnabled: true, alertLeadMinutes: 60 },
+    { description: "Estudar paradigma funcional", categoryId: EST, date: hoje, time: "15:00", endTime: "18:00", priority: "ALTA" },
+    { description: "Responder e-mails do estágio", categoryId: TRA, date: hoje, time: "14:00", priority: "MEDIA" },
+    { description: "Série com a família", categoryId: LAZ, date: hoje, time: "21:00", endTime: "22:30", priority: "BAIXA" },
+    { description: "Commit da tela de metas", categoryId: PRO, date: hoje, time: "19:30", endTime: "20:30", priority: "ALTA", alertEnabled: true, alertLeadMinutes: 30 },
   ];
   for (const t of doDia) await tarefa(t);
   console.log(`  ${doDia.length} tarefas de hoje`);
@@ -83,8 +83,8 @@ async function semear() {
   for (let d = 24; d >= 1; d--) {
     if (d % 3 === 0) continue;
     const data = emDias(-d);
-    await tarefa({ description: "Bloco de estudos", categoryId: EST, date: data, timeBlockType: "TURNO", shift: "MANHA", priority: "MEDIA" });
-    await tarefa({ description: "Turno no estágio", categoryId: TRA, date: data, timeBlockType: "TURNO", shift: "TARDE", priority: "ALTA" });
+    await tarefa({ description: "Bloco de estudos", categoryId: EST, date: data, time: "08:00", endTime: "11:00", priority: "MEDIA" });
+    await tarefa({ description: "Turno no estágio", categoryId: TRA, date: data, time: "13:00", endTime: "17:00", priority: "ALTA" });
     historico += 2;
   }
   console.log(`  ${historico} tarefas de histórico, para os relatórios`);

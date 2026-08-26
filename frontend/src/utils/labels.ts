@@ -5,6 +5,7 @@ import {
   ReminderType,
   Shift,
   TaskPriority,
+  TaskRecurrence,
   TaskStatus,
   TimeBlockType,
 } from "../types/enums";
@@ -20,6 +21,13 @@ export const TIME_BLOCK_LABELS: Record<TimeBlockType, string> = {
   [TimeBlockType.MEIA_HORA]: "Meia hora",
   [TimeBlockType.UMA_HORA]: "Uma hora",
   [TimeBlockType.TURNO]: "Turno",
+};
+
+export const TASK_RECURRENCE_LABELS: Record<TaskRecurrence, string> = {
+  [TaskRecurrence.UNICA]: "Não se repete",
+  [TaskRecurrence.DIARIA]: "Todo dia",
+  [TaskRecurrence.SEMANAL]: "Toda semana",
+  [TaskRecurrence.MENSAL]: "Todo mês",
 };
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {

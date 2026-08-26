@@ -25,8 +25,9 @@ import type {
   DashboardSummaryDTO,
   Task,
 } from "../types/entities";
-import { TaskStatus, TimeBlockType } from "../types/enums";
+import { TaskStatus } from "../types/enums";
 import { addDays, formatDateLabel, taskTimeKey, todayISO } from "../utils/date";
+import { janelaDaTarefa } from "../utils/tempo";
 import { plural, SHIFT_LABELS } from "../utils/labels";
 import { useSessao } from "../services/sessaoContexto";
 
@@ -176,7 +177,7 @@ export function DashboardPage() {
               {tasks.length === 0 ? (
                 <EmptyState
                   title="Nada planejado para hoje"
-                  description="Monte seu dia em blocos de meia hora, uma hora ou por turno."
+                  description="Diga a que horas cada coisa começa e o Nexo organiza o resto."
                   action={
                     <Link to="/dia">
                       <Button>Planejar o dia</Button>
@@ -188,9 +189,8 @@ export function DashboardPage() {
                   {tasksInOrder.map((task) => {
                     const executada = task.status === TaskStatus.EXECUTADA;
                     const quando =
-                      task.timeBlockType === TimeBlockType.TURNO
-                        ? task.shift && SHIFT_LABELS[task.shift]
-                        : task.time;
+                      janelaDaTarefa(task) ??
+                      (task.shift ? SHIFT_LABELS[task.shift] : null);
 
                     return (
                       <li
@@ -206,7 +206,7 @@ export function DashboardPage() {
                           }
                           onChange={(next) => void alternarStatus(task, next)}
                         />
-                        <span className="tabular w-13 shrink-0 text-sm text-ink-faint">
+                        <span className="tabular w-[86px] shrink-0 text-sm text-ink-faint">
                           {quando ?? "-"}
                         </span>
                         <span

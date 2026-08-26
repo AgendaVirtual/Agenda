@@ -16,9 +16,14 @@ const MAPA_TAREFA = {
   date: "date",
   timeBlockType: "time_block_type",
   time: "time",
+  endTime: "end_time",
   shift: "shift",
   status: "status",
   priority: "priority",
+  recurrence: "recurrence",
+  recurrenceGroupId: "recurrence_group_id",
+  alertEnabled: "alert_enabled",
+  alertLeadMinutes: "alert_lead_minutes",
 };
 
 const MAPA_META = {

@@ -13,6 +13,7 @@ import {
   ReminderType,
   Shift,
   TaskPriority,
+  TaskRecurrence,
   TaskStatus,
   TimeBlockType,
 } from "../types/enums";
@@ -121,6 +122,29 @@ function optionalTime(
   return timeValue(data[field], label);
 }
 
+function optionalBoolean(
+  data: InputObject,
+  field: string,
+  label: string
+): boolean | undefined {
+  if (!(field in data) || data[field] === undefined) return undefined;
+  if (typeof data[field] !== "boolean") {
+    throw new AppError(`${label} deve ser verdadeiro ou falso`);
+  }
+  return data[field] as boolean;
+}
+
+function optionalIntegerInRange(
+  data: InputObject,
+  field: string,
+  min: number,
+  max: number,
+  label: string
+): number | undefined {
+  if (!(field in data) || data[field] === undefined) return undefined;
+  return integerInRange(data[field], min, max, label);
+}
+
 function integerInRange(
   value: unknown,
   min: number,
@@ -141,22 +165,37 @@ export function parseCreateTaskBody(body: unknown): CreateTaskDTO {
     "date",
     "timeBlockType",
     "time",
+    "endTime",
     "shift",
     "priority",
+    "recurrence",
+    "alertEnabled",
+    "alertLeadMinutes",
   ]);
 
   return {
     description: requiredString(data, "description", "Descrição"),
     categoryId: requiredString(data, "categoryId", "Categoria"),
     date: isoDate(data.date, "Data"),
-    timeBlockType: enumValue(
-      data.timeBlockType,
+    timeBlockType: optionalEnumValue(
+      data,
+      "timeBlockType",
       TimeBlockType,
       "Tipo de bloco de tempo"
-    ),
-    time: optionalTime(data, "time"),
+    ) as TimeBlockType,
+    time: optionalTime(data, "time", "Horário de início"),
+    endTime: optionalTime(data, "endTime", "Horário de fim"),
     shift: optionalEnumValue(data, "shift", Shift, "Turno"),
     priority: enumValue(data.priority, TaskPriority, "Prioridade"),
+    recurrence: optionalEnumValue(data, "recurrence", TaskRecurrence, "Recorrência"),
+    alertEnabled: optionalBoolean(data, "alertEnabled", "Aviso"),
+    alertLeadMinutes: optionalIntegerInRange(
+      data,
+      "alertLeadMinutes",
+      0,
+      10080,
+      "Antecedência do aviso"
+    ),
   };
 }
 
@@ -168,8 +207,12 @@ export function parseUpdateTaskBody(body: unknown): Partial<CreateTaskDTO> {
     "date",
     "timeBlockType",
     "time",
+    "endTime",
     "shift",
     "priority",
+    "recurrence",
+    "alertEnabled",
+    "alertLeadMinutes",
   ]);
 
   if (Object.keys(data).length === 0) {
@@ -195,13 +238,36 @@ export function parseUpdateTaskBody(body: unknown): Partial<CreateTaskDTO> {
     );
   }
   if ("time" in data) {
-    result.time = optionalTime(data, "time");
+    result.time = optionalTime(data, "time", "Horário de início");
+  }
+  if ("endTime" in data) {
+    result.endTime = optionalTime(data, "endTime", "Horário de fim");
   }
   if ("shift" in data) {
     result.shift = optionalEnumValue(data, "shift", Shift, "Turno");
   }
   if ("priority" in data) {
     result.priority = enumValue(data.priority, TaskPriority, "Prioridade");
+  }
+  if ("recurrence" in data) {
+    result.recurrence = optionalEnumValue(
+      data,
+      "recurrence",
+      TaskRecurrence,
+      "Recorrência"
+    );
+  }
+  if ("alertEnabled" in data) {
+    result.alertEnabled = optionalBoolean(data, "alertEnabled", "Aviso");
+  }
+  if ("alertLeadMinutes" in data) {
+    result.alertLeadMinutes = optionalIntegerInRange(
+      data,
+      "alertLeadMinutes",
+      0,
+      10080,
+      "Antecedência do aviso"
+    );
   }
 
   return result;

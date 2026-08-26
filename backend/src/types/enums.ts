@@ -18,6 +18,13 @@ export enum TimeBlockType {
   TURNO = "TURNO",
 }
 
+export enum TaskRecurrence {
+  UNICA = "UNICA",
+  DIARIA = "DIARIA",
+  SEMANAL = "SEMANAL",
+  MENSAL = "MENSAL",
+}
+
 export enum Shift {
   MANHA = "MANHA",
   TARDE = "TARDE",

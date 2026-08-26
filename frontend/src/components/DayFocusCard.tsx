@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Category, Task } from "../types/entities";
-import { Shift, TaskStatus, TimeBlockType } from "../types/enums";
+import { Shift, TaskStatus } from "../types/enums";
 import type { FaixasDeTurno } from "../services/preferencias";
 import { plural } from "../utils/labels";
+import { janelaDaTarefa } from "../utils/tempo";
 
 const INICIO = 6.5;
 const FIM = 23.5;
@@ -72,9 +73,7 @@ export function DayFocusCard({
                   <span className="font-medium text-ink-soft">
                     {proxima.task.description}
                   </span>
-                  {proxima.task.timeBlockType === TimeBlockType.TURNO
-                    ? "."
-                    : `, às ${proxima.task.time}.`}
+                  {proxima.task.time ? `, às ${proxima.task.time}.` : "."}
                 </>
               ) : pendentes.length > 0 ? (
                 "As pendentes não têm horário à frente de agora."
@@ -171,9 +170,8 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
                 {m.task.description}
               </p>
               <p className="text-xs leading-[1.4] text-ink-faint">
-                {m.task.timeBlockType === TimeBlockType.TURNO
-                  ? `${rotuloDeTurno(m.task.shift)} · sem hora`
-                  : m.task.time}
+                {janelaDaTarefa(m.task) ??
+                  `${rotuloDeTurno(m.task.shift)} · sem hora`}
               </p>
             </div>
           );
@@ -214,9 +212,7 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
               <span
                 className={
                   "box-border h-[13px] w-[13px] rounded-pill border-2 bg-sidebar " +
-                  (m.task.timeBlockType === TimeBlockType.TURNO
-                    ? "border-dotted"
-                    : "border-solid")
+                  (m.task.time ? "border-solid" : "border-dotted")
                 }
                 style={{ borderColor: cor ?? "var(--color-hairline-strong)" }}
               />
@@ -272,8 +268,7 @@ function useAgora(): number {
 }
 
 function horaDaTarefa(task: Task, turnos: FaixasDeTurno): number | null {
-  if (task.timeBlockType !== TimeBlockType.TURNO) {
-    if (!task.time) return null;
+  if (task.time) {
     const [h, m] = task.time.split(":").map(Number);
     return h + (m || 0) / 60;
   }

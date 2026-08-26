@@ -1,6 +1,7 @@
 import type { Category, Task } from "../types/entities";
-import { TaskStatus, TimeBlockType } from "../types/enums";
+import { TaskRecurrence, TaskStatus } from "../types/enums";
 import { SHIFT_LABELS } from "../utils/labels";
+import { janelaDaTarefa } from "../utils/tempo";
 import { CategoryTag } from "./CategoryTag";
 import { PriorityBadge } from "./PriorityBadge";
 import { StatusSelector } from "./StatusSelector";
@@ -32,11 +33,9 @@ export function TaskRow({
   const isDone = task.status === TaskStatus.EXECUTADA;
 
   const timeLabel =
-    task.timeBlockType === TimeBlockType.TURNO
-      ? task.shift
-        ? SHIFT_LABELS[task.shift]
-        : "-"
-      : (task.time ?? "-");
+    janelaDaTarefa(task) ?? (task.shift ? SHIFT_LABELS[task.shift] : "-");
+  const repete =
+    task.recurrence !== undefined && task.recurrence !== TaskRecurrence.UNICA;
 
   return (
     <li
@@ -64,7 +63,7 @@ export function TaskRow({
         }
       />
 
-      <span className="tabular w-14 shrink-0 text-sm font-medium text-ink-muted">
+      <span className="tabular w-[86px] shrink-0 text-sm font-medium text-ink-muted">
         {timeLabel}
       </span>
 
@@ -78,6 +77,8 @@ export function TaskRow({
       </p>
 
       <div className="flex shrink-0 flex-wrap items-center gap-3">
+        {repete && <Sinal titulo="Tarefa que se repete" desenho="repete" />}
+        {task.alertEnabled && <Sinal titulo="Com aviso" desenho="aviso" />}
         <CategoryTag category={category} />
         <PriorityBadge priority={task.priority} />
       </div>
@@ -111,6 +112,42 @@ export function TaskRow({
         </AcaoDeLinha>
       </div>
     </li>
+  );
+}
+
+function Sinal({
+  titulo,
+  desenho,
+}: {
+  titulo: string;
+  desenho: "repete" | "aviso";
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      role="img"
+      aria-label={titulo}
+      className="h-3.5 w-3.5 shrink-0 text-ink-faint"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <title>{titulo}</title>
+      {desenho === "repete" ? (
+        <>
+          <path d="M4 10a6 6 0 0 1 10-4.5L17 8" />
+          <path d="M20 14a6 6 0 0 1-10 4.5L7 16" />
+          <path d="M17 4v4h-4M7 20v-4h4" />
+        </>
+      ) : (
+        <>
+          <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6" />
+          <path d="M10.5 19a2 2 0 0 0 3 0" />
+        </>
+      )}
+    </svg>
   );
 }
 

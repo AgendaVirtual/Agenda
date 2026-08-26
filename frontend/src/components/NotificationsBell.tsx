@@ -1,12 +1,60 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { Reminder } from "../types/entities";
+import type { Reminder, Task } from "../types/entities";
+import { TaskStatus } from "../types/enums";
 import {
   addDays,
   formatShortDate,
   reminderOccurrence,
   todayISO,
 } from "../utils/date";
+import { inicioDoAviso, janelaDaTarefa } from "../utils/tempo";
+
+interface Aviso {
+  chave: string;
+  dia: string;
+  descricao: string;
+  hora: string | null;
+  origem: "lembrete" | "tarefa";
+}
+
+// Uma tarefa so entra no sino depois que a antecedencia escolhida chega.
+function avisosDeTarefas(tarefas: Task[], hoje: string, agora: Date): Aviso[] {
+  const limite = addDays(hoje, 7);
+
+  return tarefas
+    .filter(
+      (t) =>
+        t.alertEnabled === true &&
+        t.status === TaskStatus.PENDENTE &&
+        t.date >= hoje &&
+        t.date <= limite,
+    )
+    .filter((t) => {
+      const abertura = inicioDoAviso(t);
+      return abertura !== null && agora >= abertura;
+    })
+    .map((t) => ({
+      chave: chaveDaOcorrencia(t.id, t.date),
+      dia: t.date,
+      descricao: t.description,
+      hora: janelaDaTarefa(t),
+      origem: "tarefa" as const,
+    }));
+}
+
+function avisosDeLembretes(lembretes: Reminder[], hoje: string): Aviso[] {
+  return lembretes
+    .map((r) => ({ lembrete: r, dia: reminderOccurrence(r, hoje, 7) }))
+    .filter((i): i is { lembrete: Reminder; dia: string } => i.dia !== null)
+    .map(({ lembrete, dia }) => ({
+      chave: chaveDaOcorrencia(lembrete.id, dia),
+      dia,
+      descricao: lembrete.description,
+      hora: lembrete.time ?? null,
+      origem: "lembrete" as const,
+    }));
+}
 
 const CHAVE_LIDAS = "nexo:notificacoes-lidas";
 const CHAVE_DISPENSADAS = "nexo:notificacoes-dispensadas";
@@ -41,31 +89,41 @@ function gravar(chave: string, valores: Set<string>, hoje: string): void {
 
 interface NotificationsBellProps {
   lembretes: Reminder[];
+  tarefas: Task[];
 }
 
-export function NotificationsBell({ lembretes }: NotificationsBellProps) {
+export function NotificationsBell({
+  lembretes,
+  tarefas,
+}: NotificationsBellProps) {
   const [aberto, setAberto] = useState(false);
   const [lidas, setLidas] = useState<Set<string>>(() => ler(CHAVE_LIDAS));
   const [dispensadas, setDispensadas] = useState<Set<string>>(() =>
     ler(CHAVE_DISPENSADAS),
   );
+  const [agora, setAgora] = useState(() => new Date());
   const caixaRef = useRef<HTMLDivElement>(null);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
 
   const hoje = todayISO();
 
-  const itens = lembretes
-    .map((r) => ({ lembrete: r, dia: reminderOccurrence(r, hoje, 7) }))
-    .filter((i): i is { lembrete: Reminder; dia: string } => i.dia !== null)
-    .map((i) => ({ ...i, chave: chaveDaOcorrencia(i.lembrete.id, i.dia) }))
+  const itens = [
+    ...avisosDeTarefas(tarefas, hoje, agora),
+    ...avisosDeLembretes(lembretes, hoje),
+  ]
     .filter((i) => !dispensadas.has(i.chave))
     .sort((a, b) =>
       a.dia === b.dia
-        ? (a.lembrete.time ?? "").localeCompare(b.lembrete.time ?? "")
+        ? (a.hora ?? "").localeCompare(b.hora ?? "")
         : a.dia.localeCompare(b.dia),
     );
 
   const naoLidas = itens.filter((i) => !lidas.has(i.chave)).length;
+
+  useEffect(() => {
+    const relogio = setInterval(() => setAgora(new Date()), 60_000);
+    return () => clearInterval(relogio);
+  }, []);
 
   useEffect(() => {
     if (!aberto) return;
@@ -205,7 +263,7 @@ export function NotificationsBell({ lembretes }: NotificationsBellProps) {
             </div>
           ) : (
             <ul className="flex max-h-[340px] flex-col overflow-y-auto">
-              {itens.map(({ lembrete, dia, chave }) => {
+              {itens.map(({ descricao, hora, dia, chave, origem }) => {
                 const lida = lidas.has(chave);
                 return (
                   <li key={chave} className="group flex items-start gap-1">
@@ -234,11 +292,12 @@ export function NotificationsBell({ lembretes }: NotificationsBellProps) {
                             (lida ? "text-ink-muted" : "text-ink")
                           }
                         >
-                          {lembrete.description}
+                          {descricao}
                         </span>
                         <span className="text-xs text-ink-faint">
+                          {origem === "tarefa" ? "Tarefa · " : ""}
                           {rotuloDeQuando(dia, hoje)}
-                          {lembrete.time ? ` · ${lembrete.time}` : ""}
+                          {hora ? ` · ${hora}` : ""}
                           {lida ? " · lida" : ""}
                         </span>
                       </span>
@@ -247,7 +306,7 @@ export function NotificationsBell({ lembretes }: NotificationsBellProps) {
                     <button
                       type="button"
                       onClick={() => dispensar(chave)}
-                      aria-label={`Dispensar: ${lembrete.description}`}
+                      aria-label={`Dispensar: ${descricao}`}
                       title="Dispensar"
                       className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-soft text-ink-faint transition-colors hover:bg-canvas hover:text-ink lg:h-9 lg:w-9 lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
                     >
@@ -295,7 +354,7 @@ export function NotificationsBell({ lembretes }: NotificationsBellProps) {
           </div>
 
           <p className="px-3 pt-1 pb-1 text-[11px] leading-snug text-ink-faint">
-            Limpar esconde a notificação, mas não apaga o lembrete.
+            Limpar esconde o aviso, mas não apaga a tarefa nem o lembrete.
           </p>
         </div>
       )}
