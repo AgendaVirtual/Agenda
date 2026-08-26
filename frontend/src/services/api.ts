@@ -12,6 +12,23 @@ export class ErroDeApi extends Error {
   }
 }
 
+type AoPerderSessao = () => void;
+const ouvintesDeSessao = new Set<AoPerderSessao>();
+
+export function aoPerderSessao(ouvinte: AoPerderSessao): () => void {
+  ouvintesDeSessao.add(ouvinte);
+  return () => {
+    ouvintesDeSessao.delete(ouvinte);
+  };
+}
+
+function avisarPerdaDeSessao(path: string, status: number): void {
+  if (status !== 401) return;
+  if (path.startsWith("/auth/")) return;
+
+  for (const ouvinte of ouvintesDeSessao) ouvinte();
+}
+
 export async function request<T>(
   path: string,
   options?: RequestInit,
@@ -39,6 +56,8 @@ export async function request<T>(
   } catch {
     body = null;
   }
+
+  avisarPerdaDeSessao(path, res.status);
 
   if (body === null) {
     throw new ErroDeApi(mensagemDeRespostaCrua(res.status), res.status);

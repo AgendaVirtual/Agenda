@@ -47,10 +47,7 @@ export interface Reminder {
   time?: string;
 }
 
-export type CreateTaskDTO = Omit<Task, "id" | "status" | "time" | "shift"> & {
-  time?: string | null;
-  shift?: Shift | null;
-};
+export type CreateTaskDTO = Omit<Task, "id" | "status">;
 export type UpdateTaskStatusDTO = { status: TaskStatus };
 
 export interface ApiResponse<T> {

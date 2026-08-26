@@ -10,9 +10,10 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { ProvedorDeSessao } from "./services/sessao";
 import { useSessao } from "./services/sessaoContexto";
 import { ErrorBanner, LoadingState } from "./components/ui/Feedback";
+import { Button } from "./components/ui/Button";
 
 function ExigeConta() {
-  const { conta, carregando, indisponivel } = useSessao();
+  const { conta, carregando, indisponivel, reconferir } = useSessao();
 
   if (carregando) {
     return (
@@ -24,8 +25,11 @@ function ExigeConta() {
 
   if (indisponivel) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-[420px] items-center px-4">
+      <div className="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-center gap-4 px-4">
         <ErrorBanner message={indisponivel} />
+        <Button variant="secondary" onClick={() => void reconferir()}>
+          Tentar de novo
+        </Button>
       </div>
     );
   }

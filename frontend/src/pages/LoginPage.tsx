@@ -72,7 +72,11 @@ export function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={(e) => void enviar(e)} className="flex flex-col gap-4">
+          <form
+            onSubmit={(e) => void enviar(e)}
+            className="flex flex-col gap-4"
+            aria-busy={enviando}
+          >
             {criando && (
               <Field label="Nome">
                 {(id, invalid) => (
@@ -82,6 +86,7 @@ export function LoginPage() {
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     autoComplete="name"
+                    autoFocus
                     placeholder="Como você quer ser chamado"
                     required
                   />
@@ -98,6 +103,7 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
+                  autoFocus={!criando}
                   placeholder="voce@ufape.br"
                   required
                 />
@@ -123,11 +129,13 @@ export function LoginPage() {
             </Field>
 
             <Button type="submit" fullWidth disabled={enviando}>
-              {enviando
-                ? "Aguarde..."
+              <span role="status">
+                {enviando
+                  ? "Aguarde..."
                 : criando
                   ? "Criar conta e entrar"
                   : "Entrar"}
+              </span>
             </Button>
           </form>
         </div>
@@ -136,6 +144,7 @@ export function LoginPage() {
           {criando ? "Já tem conta?" : "Ainda não tem conta?"}{" "}
           <button
             type="button"
+            disabled={enviando}
             onClick={() => trocarModo(criando ? "entrar" : "criar")}
             className="-my-1 rounded-soft px-1 py-3 font-medium text-ink underline underline-offset-4 transition-colors hover:text-accent"
           >

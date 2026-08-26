@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { contaAtual, sair as sairNoServidor, type Conta } from "./authApi";
-import { ErroDeApi } from "./api";
+import { aoPerderSessao, ErroDeApi } from "./api";
 import { ContextoDeSessao, type Sessao } from "./sessaoContexto";
 
 export function ProvedorDeSessao({ children }: { children: ReactNode }) {
@@ -24,6 +24,15 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
   useEffect(() => {
     void reconferir();
   }, [reconferir]);
+
+  useEffect(
+    () =>
+      aoPerderSessao(() => {
+        setConta(null);
+        setIndisponivel(null);
+      }),
+    [],
+  );
 
   const valor: Sessao = {
     conta,
