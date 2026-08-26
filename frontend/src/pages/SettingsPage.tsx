@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { PageHeader } from "../components/AppShell";
-import { Badge, DotBadge } from "../components/ui/Badge";
+import { DotBadge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, SectionTitle } from "../components/ui/Card";
 import { Field, SelectInput, TextInput } from "../components/ui/Field";
@@ -17,6 +17,8 @@ import {
   type Preferencias,
 } from "../services/preferencias";
 import type { Category } from "../types/entities";
+import { atualizarConta, trocarSenha } from "../services/authApi";
+import { useSessao } from "../services/sessaoContexto";
 
 const PALETA_SUGERIDA = [
   { hex: "#1971C2", nome: "Azul" },
@@ -97,7 +99,7 @@ export function SettingsPage() {
       )}
 
       <div className="anim-rise-late flex max-w-3xl flex-col gap-3">
-        <Perfil prefs={prefs} onChange={atualizar} />
+        <Perfil />
 
         <Card>
           <SectionTitle
@@ -137,54 +139,87 @@ export function SettingsPage() {
   );
 }
 
-function Perfil({
-  prefs,
-  onChange,
-}: {
-  prefs: Preferencias;
-  onChange: (p: Partial<Preferencias>) => void;
-}) {
+function Perfil() {
+  const { conta, atualizou } = useSessao();
+  const [nome, setNome] = useState(conta?.name ?? "");
+  const [email, setEmail] = useState(conta?.email ?? "");
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvo, setSalvo] = useState(false);
+
+  const mudou = nome !== (conta?.name ?? "") || email !== (conta?.email ?? "");
+
+  async function salvar(evento: FormEvent) {
+    evento.preventDefault();
+    setErro(null);
+    setSalvando(true);
+
+    try {
+      atualizou(await atualizarConta({ name: nome, email }));
+      setSalvo(true);
+    } catch (falha) {
+      setErro((falha as Error).message);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   return (
     <Card>
       <SectionTitle>Perfil</SectionTitle>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Nome" hint="Aparece nas iniciais do avatar, no topo.">
-          {(id) => (
-            <TextInput
-              id={id}
-              value={prefs.perfil.nome}
-              placeholder="Como você quer ser chamado"
-              onChange={(e) =>
-                onChange({ perfil: { ...prefs.perfil, nome: e.target.value } })
-              }
-            />
-          )}
-        </Field>
+      {erro && (
+        <div className="mb-4">
+          <ErrorBanner message={erro} onDismiss={() => setErro(null)} />
+        </div>
+      )}
 
-        <Field label="E-mail">
-          {(id) => (
-            <TextInput
-              id={id}
-              type="email"
-              value={prefs.perfil.email}
-              placeholder="voce@ufape.edu.br"
-              onChange={(e) =>
-                onChange({ perfil: { ...prefs.perfil, email: e.target.value } })
-              }
-            />
-          )}
-        </Field>
-      </div>
+      <form onSubmit={(e) => void salvar(e)}>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Nome" hint="Aparece nas iniciais do avatar, na lateral.">
+            {(id) => (
+              <TextInput
+                id={id}
+                value={nome}
+                placeholder="Como você quer ser chamado"
+                onChange={(e) => {
+                  setNome(e.target.value);
+                  setSalvo(false);
+                }}
+                required
+              />
+            )}
+          </Field>
 
-      <p className="mt-4 text-[13px] font-light text-ink-faint">
-        Salvo neste navegador. Ainda não existe conta no servidor, então estes
-        dados não acompanham você em outro computador.
-      </p>
+          <Field label="E-mail" hint="É com ele que você entra.">
+            {(id) => (
+              <TextInput
+                id={id}
+                type="email"
+                value={email}
+                placeholder="voce@ufape.br"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setSalvo(false);
+                }}
+                required
+              />
+            )}
+          </Field>
+        </div>
+
+        <div className="mt-5 flex items-center gap-3">
+          <Button type="submit" disabled={!mudou || salvando}>
+            {salvando ? "Salvando..." : "Salvar perfil"}
+          </Button>
+          {salvo && !mudou && (
+            <span className="text-[13px] text-ink-muted">Perfil salvo.</span>
+          )}
+        </div>
+      </form>
     </Card>
   );
 }
-
 function ListaDeCategorias({ categorias }: { categorias: Category[] }) {
   if (categorias.length === 0) {
     return (
@@ -300,17 +335,86 @@ function Turnos({
 }
 
 function Seguranca() {
+  const [atual, setAtual] = useState("");
+  const [nova, setNova] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [pronto, setPronto] = useState(false);
+
+  async function salvar(evento: FormEvent) {
+    evento.preventDefault();
+    setErro(null);
+    setSalvando(true);
+
+    try {
+      await trocarSenha({ currentPassword: atual, newPassword: nova });
+      setAtual("");
+      setNova("");
+      setPronto(true);
+    } catch (falha) {
+      setErro((falha as Error).message);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   return (
     <Card>
-      <SectionTitle action={<Badge tone="neutral">Aguarda o backend</Badge>}>
-        Senha e segurança
-      </SectionTitle>
+      <SectionTitle>Senha e segurança</SectionTitle>
 
-      <p className="text-sm font-light text-ink-muted">
-        Ainda não existe login no Nexo: nenhuma conta, nenhuma senha. Quando o
-        backend expuser autenticação, esta seção passa a permitir trocar a senha
-        e encerrar a sessão.
-      </p>
+      {erro && (
+        <div className="mb-4">
+          <ErrorBanner message={erro} onDismiss={() => setErro(null)} />
+        </div>
+      )}
+
+      <form onSubmit={(e) => void salvar(e)}>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Senha atual">
+            {(id) => (
+              <TextInput
+                id={id}
+                type="password"
+                value={atual}
+                autoComplete="current-password"
+                onChange={(e) => {
+                  setAtual(e.target.value);
+                  setPronto(false);
+                }}
+                required
+              />
+            )}
+          </Field>
+
+          <Field label="Nova senha" hint="Ao menos 8 caracteres.">
+            {(id) => (
+              <TextInput
+                id={id}
+                type="password"
+                value={nova}
+                autoComplete="new-password"
+                minLength={8}
+                onChange={(e) => {
+                  setNova(e.target.value);
+                  setPronto(false);
+                }}
+                required
+              />
+            )}
+          </Field>
+        </div>
+
+        <div className="mt-5 flex items-center gap-3">
+          <Button type="submit" disabled={salvando || !atual || nova.length < 8}>
+            {salvando ? "Trocando..." : "Trocar senha"}
+          </Button>
+          {pronto && (
+            <span className="text-[13px] text-ink-muted">
+              Senha trocada. As outras sessões foram encerradas.
+            </span>
+          )}
+        </div>
+      </form>
     </Card>
   );
 }

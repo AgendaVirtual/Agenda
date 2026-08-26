@@ -231,7 +231,7 @@ export class AuthService {
     return linhas[0];
   }
 
-  async trocarSenha(id: string, dados: unknown): Promise<void> {
+  async trocarSenha(id: string, dados: unknown): Promise<string> {
     const corpo = (dados ?? {}) as Record<string, unknown>;
     const nova = validarSenha(corpo.newPassword);
 
@@ -250,10 +250,13 @@ export class AuthService {
       throw new AppError("A senha atual não confere", 401);
     }
 
+    const passwordHash = await criarHash(nova);
     await query("UPDATE users SET password_hash = $1 WHERE id = $2", [
-      await criarHash(nova),
+      passwordHash,
       id,
     ]);
+
+    return passwordHash;
   }
 
   async semearCategorias(userId: string, padroes: { name: string; color: string }[]): Promise<void> {
