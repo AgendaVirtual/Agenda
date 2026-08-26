@@ -171,9 +171,10 @@ export class CategoryService {
       goals.findAll(),
     ]);
 
+    const canonicalId = existing.id;
     const usedBy =
-      allTasks.filter((task) => task.categoryId === id).length +
-      allGoals.filter((goal) => goal.categoryId === id).length;
+      allTasks.filter((task) => task.categoryId === canonicalId).length +
+      allGoals.filter((goal) => goal.categoryId === canonicalId).length;
 
     if (usedBy > 0) {
       throw new AppError(
@@ -182,7 +183,7 @@ export class CategoryService {
       );
     }
 
-    await this.repository.delete(id);
+    await this.repository.delete(canonicalId);
   }
 
   async seedDefaults(): Promise<void> {

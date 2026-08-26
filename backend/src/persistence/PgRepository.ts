@@ -4,6 +4,8 @@ import { query } from "./db";
 
 type Mapa = Record<string, string>;
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export class PgRepository<T extends { id: string }> implements IRepository<T> {
   private readonly colunas: Mapa;
   private readonly campos: Mapa;
@@ -46,6 +48,8 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   }
 
   async findById(id: string): Promise<T | undefined> {
+    if (!UUID.test(id)) return undefined;
+
     const linhas = await query<Record<string, unknown>>(
       `SELECT * FROM ${this.tabela} WHERE id = $1`,
       [id]
@@ -66,6 +70,8 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   }
 
   async update(id: string, dados: Partial<T>): Promise<T | undefined> {
+    if (!UUID.test(id)) return undefined;
+
     const { id: _ignorado, ...resto } = dados as Record<string, unknown>;
     const [colunas, valores] = this.paraLinha(resto);
     if (colunas.length === 0) return this.findById(id);
@@ -80,6 +86,8 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   }
 
   async delete(id: string): Promise<boolean> {
+    if (!UUID.test(id)) return false;
+
     const linhas = await query<{ id: string }>(
       `DELETE FROM ${this.tabela} WHERE id = $1 RETURNING id`,
       [id]
