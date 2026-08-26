@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { AuthService, emitirToken } from "../services/AuthService";
+import {
+  AuthService,
+  emitirToken,
+  Usuario,
+  UsuarioComSessao,
+} from "../services/AuthService";
 import { DEFAULT_CATEGORIES } from "../services/CategoryService";
 import {
   gravarCookieDeSessao,
@@ -7,6 +12,10 @@ import {
   usuarioDaRequisicao,
 } from "../middleware/sessao";
 import { AppError, asyncHandler } from "../utils/errors";
+
+function semSegredo(usuario: UsuarioComSessao): Usuario {
+  return { id: usuario.id, name: usuario.name, email: usuario.email };
+}
 
 export function createAuthRouter(authService = new AuthService()): Router {
   const router = Router();
@@ -24,8 +33,8 @@ export function createAuthRouter(authService = new AuthService()): Router {
         }))
       );
 
-      gravarCookieDeSessao(res, emitirToken(usuario.id));
-      res.status(201).json({ success: true, data: usuario });
+      gravarCookieDeSessao(res, emitirToken(usuario.id, usuario.passwordHash));
+      res.status(201).json({ success: true, data: semSegredo(usuario) });
     })
   );
 
@@ -33,8 +42,8 @@ export function createAuthRouter(authService = new AuthService()): Router {
     "/entrar",
     asyncHandler(async (req, res) => {
       const usuario = await authService.entrar(req.body);
-      gravarCookieDeSessao(res, emitirToken(usuario.id));
-      res.json({ success: true, data: usuario });
+      gravarCookieDeSessao(res, emitirToken(usuario.id, usuario.passwordHash));
+      res.json({ success: true, data: semSegredo(usuario) });
     })
   );
 
@@ -46,7 +55,7 @@ export function createAuthRouter(authService = new AuthService()): Router {
   router.get(
     "/eu",
     asyncHandler(async (req, res) => {
-      const id = usuarioDaRequisicao(req);
+      const id = await usuarioDaRequisicao(req);
       const usuario = id ? await authService.porId(id) : undefined;
       if (!usuario) throw new AppError("Faça login para continuar", 401);
 
@@ -57,7 +66,7 @@ export function createAuthRouter(authService = new AuthService()): Router {
   router.put(
     "/eu",
     asyncHandler(async (req, res) => {
-      const id = usuarioDaRequisicao(req);
+      const id = await usuarioDaRequisicao(req);
       if (!id) throw new AppError("Faça login para continuar", 401);
 
       res.json({
@@ -70,7 +79,7 @@ export function createAuthRouter(authService = new AuthService()): Router {
   router.put(
     "/eu/senha",
     asyncHandler(async (req, res) => {
-      const id = usuarioDaRequisicao(req);
+      const id = await usuarioDaRequisicao(req);
       if (!id) throw new AppError("Faça login para continuar", 401);
 
       await authService.trocarSenha(id, req.body);

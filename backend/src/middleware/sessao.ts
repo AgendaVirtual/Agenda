@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { validarToken } from "../services/AuthService";
+import { AuthService, lerToken } from "../services/AuthService";
 import { comUsuario } from "../persistence/contexto";
 import { usaPostgres } from "../persistence/db";
 import { AppError } from "../utils/errors";
@@ -12,7 +12,13 @@ export function lerCookieDeSessao(req: Request): string | undefined {
 
   for (const parte of bruto.split(";")) {
     const [nome, ...resto] = parte.trim().split("=");
-    if (nome === COOKIE) return decodeURIComponent(resto.join("="));
+    if (nome !== COOKIE) continue;
+
+    try {
+      return decodeURIComponent(resto.join("="));
+    } catch {
+      return undefined;
+    }
   }
   return undefined;
 }
@@ -30,15 +36,30 @@ export function gravarCookieDeSessao(res: Response, token: string): void {
 }
 
 export function limparCookieDeSessao(res: Response): void {
+  const seguro = process.env.NODE_ENV === "production";
   res.setHeader(
     "Set-Cookie",
-    `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+    `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0` +
+      (seguro ? "; Secure" : "")
   );
 }
 
-export function usuarioDaRequisicao(req: Request): string | undefined {
+const autenticacao = new AuthService();
+
+export async function usuarioDaRequisicao(
+  req: Request
+): Promise<string | undefined> {
   const token = lerCookieDeSessao(req);
-  return token ? (validarToken(token) ?? undefined) : undefined;
+  if (!token) return undefined;
+
+  const conteudo = lerToken(token);
+  if (!conteudo) return undefined;
+
+  const usuario = await autenticacao.sessaoValida(
+    conteudo.userId,
+    conteudo.marca
+  );
+  return usuario?.id;
 }
 
 export function exigirSessao(
@@ -51,11 +72,13 @@ export function exigirSessao(
     return;
   }
 
-  const userId = usuarioDaRequisicao(req);
-  if (!userId) {
-    next(new AppError("Faça login para continuar", 401));
-    return;
-  }
-
-  comUsuario(userId, next);
+  usuarioDaRequisicao(req)
+    .then((userId) => {
+      if (!userId) {
+        next(new AppError("Faça login para continuar", 401));
+        return;
+      }
+      comUsuario(userId, next);
+    })
+    .catch(next);
 }

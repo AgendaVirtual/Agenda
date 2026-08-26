@@ -51,7 +51,7 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   async findAll(): Promise<T[]> {
     const dono = this.filtroDeDono(1);
     const linhas = await query<Record<string, unknown>>(
-      `SELECT * FROM ${this.tabela} WHERE TRUE${dono.sql}`,
+      `SELECT * FROM ${this.tabela} WHERE TRUE${dono.sql} ORDER BY seq`,
       dono.valores
     );
     return linhas.map((l) => this.paraEntidade(l));
