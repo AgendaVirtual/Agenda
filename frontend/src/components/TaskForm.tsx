@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from "react";
 import type { Category, CreateTaskDTO, Task } from "../types/entities";
 import { TaskPriority, TimeBlockType } from "../types/enums";
+import { PRIORITY_LABELS } from "../utils/labels";
 import { TimeBlockSelector, type TimeBlockValue } from "./TimeBlockSelector";
+import { Button } from "./ui/Button";
+import { Field, SelectInput, TextInput } from "./ui/Field";
 
 interface TaskFormProps {
   date: string;
@@ -11,12 +14,6 @@ interface TaskFormProps {
   onCancel: () => void;
 }
 
-const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  [TaskPriority.ALTA]: "Alta",
-  [TaskPriority.MEDIA]: "Média",
-  [TaskPriority.BAIXA]: "Baixa",
-};
-
 export function TaskForm({
   date,
   categories,
@@ -25,13 +22,13 @@ export function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const [description, setDescription] = useState(
-    initialTask?.description ?? ""
+    initialTask?.description ?? "",
   );
   const [categoryId, setCategoryId] = useState(
-    initialTask?.categoryId ?? categories[0]?.id ?? ""
+    initialTask?.categoryId ?? categories[0]?.id ?? "",
   );
   const [priority, setPriority] = useState<TaskPriority>(
-    initialTask?.priority ?? TaskPriority.MEDIA
+    initialTask?.priority ?? TaskPriority.MEDIA,
   );
   const [timeBlock, setTimeBlock] = useState<TimeBlockValue>({
     timeBlockType: initialTask?.timeBlockType ?? TimeBlockType.UMA_HORA,
@@ -40,6 +37,8 @@ export function TaskForm({
   });
   const [error, setError] = useState<string | null>(null);
 
+  const effectiveCategoryId = categoryId || (categories[0]?.id ?? "");
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
@@ -47,7 +46,7 @@ export function TaskForm({
       setError("Descreva a tarefa");
       return;
     }
-    if (!categoryId) {
+    if (!effectiveCategoryId) {
       setError("Selecione uma categoria");
       return;
     }
@@ -61,94 +60,93 @@ export function TaskForm({
     }
 
     setError(null);
+    const isShiftBlock = timeBlock.timeBlockType === TimeBlockType.TURNO;
+
     onSubmit({
       description: description.trim(),
-      categoryId,
+      categoryId: effectiveCategoryId,
       date,
       priority,
       timeBlockType: timeBlock.timeBlockType,
-      time: timeBlock.time,
-      shift: timeBlock.shift,
+      time: isShiftBlock ? null : timeBlock.time,
+      shift: isShiftBlock ? timeBlock.shift : null,
     });
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-    >
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-slate-600">
-          Descrição
-        </label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Ex: Revisar slides da apresentação"
-          className="rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
-        />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <Field label="Descrição">
+        {(id, invalid) => (
+          <TextInput
+            id={id}
+            invalid={invalid}
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Ex: Revisar slides da apresentação"
+          />
+        )}
+      </Field>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="Categoria">
+          {(id, invalid) => (
+            <SelectInput
+              id={id}
+              invalid={invalid}
+              value={effectiveCategoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              {categories.length === 0 && (
+                <option value="">Nenhuma categoria disponível</option>
+              )}
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </SelectInput>
+          )}
+        </Field>
+
+        <Field label="Prioridade">
+          {(id, invalid) => (
+            <SelectInput
+              id={id}
+              invalid={invalid}
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as TaskPriority)}
+            >
+              {Object.values(TaskPriority).map((value) => (
+                <option key={value} value={value}>
+                  {PRIORITY_LABELS[value]}
+                </option>
+              ))}
+            </SelectInput>
+          )}
+        </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-slate-600">
-            Categoria
-          </label>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-slate-600">
-            Prioridade
-          </label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TaskPriority)}
-            className="rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
-          >
-            {Object.values(TaskPriority).map((p) => (
-              <option key={p} value={p}>
-                {PRIORITY_LABELS[p]}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-slate-600">
+      <fieldset className="flex min-w-0 flex-col">
+        <legend className="mb-2 text-sm font-medium text-ink">
           Bloco de tempo
-        </label>
+        </legend>
         <TimeBlockSelector value={timeBlock} onChange={setTimeBlock} />
-      </div>
+      </fieldset>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="text-[13px] font-light text-danger">
+          {error}
+        </p>
+      )}
 
-      <div className="flex justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-        >
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
+        </Button>
+        <Button type="submit">
           {initialTask ? "Salvar alterações" : "Criar tarefa"}
-        </button>
+        </Button>
       </div>
     </form>
   );

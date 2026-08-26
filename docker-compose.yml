@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      PORT: 3000
+      PLANNER_DATA_DIR: /app/data
+      TZ: America/Recife
+    volumes:
+      - planner-data:/app/data
+    ports:
+      - "3100:3000"
+
+  frontend:
+    build: ./frontend
+    environment:
+      PORT: 8080
+      API_URL: http://backend:3000
+    ports:
+      - "8090:8080"
+    depends_on:
+      - backend
+
+volumes:
+  planner-data:

@@ -1,4 +1,4 @@
-# Planner Virtual — Backend
+# Planner Virtual - Backend
 
 Backend em Node.js + TypeScript + Express, com persistência em arquivos JSON.
 

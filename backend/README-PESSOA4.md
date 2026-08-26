@@ -1,4 +1,4 @@
-# Backend — Pessoa 4: Relatórios + Painel Analítico
+# Backend - Pessoa 4: Relatórios + Painel Analítico
 
 Esta implementação foi feita diretamente sobre a estrutura do `Agenda-main`, preservando o padrão de TypeScript, `FileRepository`, services, controllers e resposta `{ success, data?, error? }` já existentes. A organização também segue a ideia de separação por responsabilidade vista no Scientia: cálculo puro separado de service, service sem conhecer Express e controller apenas traduzindo HTTP.
 
