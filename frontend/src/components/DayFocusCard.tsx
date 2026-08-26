@@ -230,7 +230,11 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
       </div>
 
       <div className="relative mt-2.5 h-4 overflow-hidden">
-        {HORAS_DA_REGUA.map((h) => (
+        {HORAS_DA_REGUA.filter(
+          // A hora cheia sai de cena quando o marcador de agora cai em cima
+          // dela: em telas estreitas os dois se sobrepunham.
+          (h) => !agoraVisivel || Math.abs(h - agora) > 1.6,
+        ).map((h) => (
           <span
             key={h}
             className="tabular absolute -translate-x-1/2 text-[11px] text-ink-faint"
