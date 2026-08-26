@@ -1,1 +1,137 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans:
+    "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --color-ink: #0d0e10; --color-ink-strong: #1e1f21; --color-ink-muted: #646f79; --color-ink-faint: #8b939b; --color-ink-soft: #464f58; --color-sidebar: #faf7f2; --color-canvas: #f5f4f3; --color-surface: #ffffff; --color-hairline: #dbdbdb; --color-hairline-strong: #c1c1c1; --color-accent: #55649e;
+  --color-accent-soft: #eceef6;
+
+  --color-danger: #f06a6a;
+  --color-danger-soft: #fde9e9;
+  --color-success: #28a745;
+  --color-success-soft: #e8f5eb;
+  --color-warning: #b26b00;
+  --color-warning-soft: #fdf0dd;
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-soft: 10px; --radius-card: 16px;
+  --radius-pill: 100px;
+
+  --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+    border-radius: var(--radius-xs);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @keyframes grow-width {
+    from {
+      width: 0;
+    }
+  }
+
+  .anim-grow {
+    animation: grow-width 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes block-in {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+  }
+
+  .anim-block {
+    animation: block-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .anim-rise {
+    animation: rise-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .anim-rise-late {
+    animation: rise-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+  }
+
+  @keyframes highlight-fade {
+    from {
+      background-color: var(--color-accent-soft);
+      border-color: var(--color-accent);
+    }
+  }
+
+  .anim-highlight {
+    animation: highlight-fade 1600ms ease-out both;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+  }
+
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  dialog[open] {
+    animation: modal-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  dialog::backdrop {
+    background-color: rgb(13 14 16 / 0.4);
+    backdrop-filter: blur(4px);
+  }
+
+  dialog[open]::backdrop {
+    animation: backdrop-in 200ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    dialog[open]::backdrop {
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
