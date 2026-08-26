@@ -88,10 +88,6 @@ CREATE TABLE IF NOT EXISTS reminders (
   time        TEXT
 );
 
-CREATE INDEX IF NOT EXISTS tasks_date_idx ON tasks (user_id, date);
-CREATE INDEX IF NOT EXISTS goals_period_idx ON goals (user_id, period);
-CREATE INDEX IF NOT EXISTS categories_user_idx ON categories (user_id);
-CREATE INDEX IF NOT EXISTS reminders_user_idx ON reminders (user_id);
 `;
 
 const MIGRACAO_DONO = `
@@ -114,7 +110,18 @@ BEGIN
 END $$;
 `;
 
+const INDICES = `
+DROP INDEX IF EXISTS tasks_date_idx;
+DROP INDEX IF EXISTS goals_period_idx;
+
+CREATE INDEX IF NOT EXISTS tasks_user_date_idx ON tasks (user_id, date);
+CREATE INDEX IF NOT EXISTS goals_user_period_idx ON goals (user_id, period);
+CREATE INDEX IF NOT EXISTS categories_user_idx ON categories (user_id);
+CREATE INDEX IF NOT EXISTS reminders_user_idx ON reminders (user_id);
+`;
+
 export async function migrar(): Promise<void> {
   await query(ESQUEMA);
   await query(MIGRACAO_DONO);
+  await query(INDICES);
 }

@@ -15,13 +15,17 @@ const scryptAsync = promisify(scrypt) as (
   tamanho: number
 ) => Promise<Buffer>;
 
-const CUSTO = 64;
+const TAMANHO_DA_CHAVE = 64;
 const DURACAO_SESSAO_DIAS = 30;
 
 export interface Usuario {
   id: string;
   name: string;
   email: string;
+}
+
+export interface UsuarioComSessao extends Usuario {
+  passwordHash: string;
 }
 
 interface LinhaUsuario extends Usuario {
@@ -38,8 +42,27 @@ function segredo(): string {
   return valor;
 }
 
+export function conferirSegredo(): void {
+  const valor = segredo();
+  const distintos = new Set(valor).size;
+
+  if (distintos < 8) {
+    throw new Error(
+      "AUTH_SECRET tem pouca variedade de caracteres; use um valor aleatório, " +
+        "por exemplo o resultado de `openssl rand -base64 32`"
+    );
+  }
+}
+
+function marcaDaSenha(passwordHash: string): string {
+  return createHmac("sha256", segredo())
+    .update(passwordHash)
+    .digest("base64url")
+    .slice(0, 12);
+}
+
 async function derivar(senha: string, sal: string): Promise<string> {
-  const derivada = await scryptAsync(senha, sal, CUSTO);
+  const derivada = await scryptAsync(senha, sal, TAMANHO_DA_CHAVE);
   return derivada.toString("hex");
 }
 
@@ -62,25 +85,27 @@ function assinar(carga: string): string {
   return createHmac("sha256", segredo()).update(carga).digest("base64url");
 }
 
-export function emitirToken(userId: string): string {
+export function emitirToken(userId: string, passwordHash: string): string {
   const expiraEm = Date.now() + DURACAO_SESSAO_DIAS * 24 * 60 * 60 * 1000;
-  const carga = `${userId}.${expiraEm}`;
+  const carga = `${userId}.${expiraEm}.${marcaDaSenha(passwordHash)}`;
   return `${carga}.${assinar(carga)}`;
 }
 
-export function validarToken(token: string): string | null {
+export function lerToken(
+  token: string
+): { userId: string; marca: string } | null {
   const partes = token.split(".");
-  if (partes.length !== 3) return null;
+  if (partes.length !== 4) return null;
 
-  const [userId, expiraEm, assinatura] = partes;
-  const esperada = assinar(`${userId}.${expiraEm}`);
+  const [userId, expiraEm, marca, assinatura] = partes;
+  const esperada = assinar(`${userId}.${expiraEm}.${marca}`);
 
   const a = Buffer.from(assinatura);
   const b = Buffer.from(esperada);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   if (Number(expiraEm) < Date.now()) return null;
 
-  return userId;
+  return { userId, marca };
 }
 
 function normalizarEmail(valor: unknown): string {
@@ -105,7 +130,7 @@ function validarNome(valor: unknown): string {
 }
 
 export class AuthService {
-  async registrar(dados: unknown): Promise<Usuario> {
+  async registrar(dados: unknown): Promise<UsuarioComSessao> {
     const corpo = (dados ?? {}) as Record<string, unknown>;
     const name = validarNome(corpo.name);
     const email = normalizarEmail(corpo.email);
@@ -120,16 +145,17 @@ export class AuthService {
     }
 
     const id = randomUUID();
+    const passwordHash = await criarHash(senha);
     await query(
       `INSERT INTO users (id, name, email, password_hash)
        VALUES ($1, $2, $3, $4)`,
-      [id, name, email, await criarHash(senha)]
+      [id, name, email, passwordHash]
     );
 
-    return { id, name, email };
+    return { id, name, email, passwordHash };
   }
 
-  async entrar(dados: unknown): Promise<Usuario> {
+  async entrar(dados: unknown): Promise<UsuarioComSessao> {
     const corpo = (dados ?? {}) as Record<string, unknown>;
     const email = normalizarEmail(corpo.email);
     const senha = corpo.password;
@@ -147,6 +173,28 @@ export class AuthService {
 
     if (!confere) {
       throw new AppError("E-mail ou senha incorretos", 401);
+    }
+
+    return {
+      id: usuario.id,
+      name: usuario.name,
+      email: usuario.email,
+      passwordHash: usuario.password_hash,
+    };
+  }
+
+  async sessaoValida(
+    userId: string,
+    marca: string
+  ): Promise<Usuario | undefined> {
+    const linhas = await query<LinhaUsuario>(
+      "SELECT id, name, email, password_hash FROM users WHERE id = $1",
+      [userId]
+    );
+
+    const usuario = linhas[0];
+    if (!usuario || marcaDaSenha(usuario.password_hash) !== marca) {
+      return undefined;
     }
 
     return { id: usuario.id, name: usuario.name, email: usuario.email };
