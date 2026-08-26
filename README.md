@@ -59,7 +59,7 @@ Some um serviço de **PostgreSQL** do próprio Railway e ligue-o ao backend.
 | Serviço | Root Directory | Config file | Variáveis |
 |---|---|---|---|
 | backend | `/backend` | `/backend/railway.json` | `DATABASE_URL` (vem do Postgres ao ligar os serviços), `AUTH_SECRET` |
-| frontend | `/frontend` | `/frontend/railway.json` | `API_URL=https://SEU-BACKEND.up.railway.app` (sem `/api` no fim) |
+| frontend | `/frontend` | `/frontend/railway.json` | `API_URL=http://SEU-BACKEND.railway.internal:8080` (ver aviso abaixo) |
 
 `PORT` é injetada pelo Railway nos dois; não defina à mão. Se o banco estiver
 fora da rede interna do Railway, acrescente `PGSSL=require` no backend.
@@ -76,15 +76,32 @@ Passo a passo no Railway:
 5. Adicione outro serviço pelo mesmo repositório para o frontend.
 6. No serviço do frontend, configure **Root Directory** como `/frontend` e
    **Config File Path** como `/frontend/railway.json`.
-7. Depois que o backend tiver domínio público, configure no frontend
-   `API_URL=https://SEU-BACKEND.up.railway.app` e redeploy.
+7. No frontend, configure `API_URL` com o endereço INTERNO do backend e
+   redeploy. Veja o formato logo abaixo.
+
+### O API_URL usa a rede interna, não o domínio público
+
+```
+API_URL=http://SEU-BACKEND.railway.internal:8080
+```
+
+Três detalhes, e errar qualquer um derruba o app com 502:
+
+- **`http`, não `https`.** O backend fala HTTP simples; quem termina o TLS é a
+  borda do Railway, que a rede interna não atravessa.
+- **`.railway.internal`.** Apontar para o domínio público não funciona de dentro
+  do projeto: o DNS do Railway o resolve para o IP privado, e aí a porta 443 não
+  existe. É exatamente esse o erro `connect() failed (111: Connection refused)
+  while connecting to upstream: https://10.x.x.x:443`.
+- **A porta.** Use a que o backend registra ao subir, na linha
+  `Planner Virtual backend rodando na porta N` (normalmente 8080).
 
 Três pontos que não são adivinháveis:
 
-- **Sem banco, o app cai para arquivo JSON.** É o modo local de quem roda sem
-  Docker. Em hospedagem isso perderia tudo a cada publicação, porque o disco do
-  contêiner é efêmero: é justamente por isso que existe o Postgres. O esquema é
-  aplicado sozinho na subida.
+- **O banco é obrigatório para o app subir.** Sem `DATABASE_URL` o servidor
+  recusa iniciar e diz o que falta, porque é no Postgres que ficam as contas: sem
+  ele não existe login, e sem login não se entra em tela nenhuma. O
+  `FileRepository` continua no código, mas só para os testes.
 - **O fuso vai na imagem** (`TZ=America/Recife`, já no Dockerfile). Um contêiner
   sobe em UTC, e o backend calcula "hoje" pela hora local: sem isso, os
   lembretes de hoje somem toda noite a partir das 21h.

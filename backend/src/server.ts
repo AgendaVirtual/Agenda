@@ -6,37 +6,23 @@ import { conferirSegredo } from "./services/AuthService";
 const PORT = process.env.PORT ?? 3000;
 
 function conferirAmbiente(): void {
-  const producao = process.env.NODE_ENV === "production";
-
-  if (producao && !usaPostgres()) {
+  if (!usaPostgres()) {
     throw new Error(
-      "DATABASE_URL ausente em produção. Sem banco o app cai para arquivo, " +
-        "e nesse modo não há contas nem isolamento: as rotas de dados ficariam " +
-        "abertas. Defina DATABASE_URL ou rode com NODE_ENV diferente."
+      "DATABASE_URL ausente. O Nexo precisa de PostgreSQL para funcionar: é " +
+        "onde ficam as contas e a separação de dados entre usuários. Sem banco " +
+        "não há como entrar no app. Suba um com `docker compose up -d db` e " +
+        "aponte DATABASE_URL para ele."
     );
   }
 
-  if (usaPostgres()) {
-    conferirSegredo();
-  } else {
-    console.warn(
-      "AVISO: sem DATABASE_URL. Modo de arquivo, SEM login e SEM separação por " +
-        "usuário. Use apenas em desenvolvimento local."
-    );
-  }
+  conferirSegredo();
 }
 
 async function start(): Promise<void> {
   conferirAmbiente();
 
-  if (usaPostgres()) {
-    await migrar();
-    console.log("Esquema do banco aplicado");
-  }
-
-  if (!usaPostgres()) {
-    await new CategoryService().seedDefaults();
-  }
+  await migrar();
+  console.log("Esquema do banco aplicado");
 
   app.listen(PORT, () => {
     console.log(
