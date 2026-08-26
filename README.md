@@ -35,3 +35,40 @@ Como padrão adotado pela equipe (conforme projetos anteriores modulares):
 *   **Frontend:** `TypeScript` (React) + `Tailwind CSS` (Garante uma interface extremamente bonita e responsiva).
 *   **Backend:** `Node.js` + `Express` (Arquitetura em camadas: Controllers, Services, Routes, usando DTOs para tráfego seguro).
 *   **Armazenamento:** Persistência de dados (Banco de dados relacional / Arquivos JSON).
+
+---
+
+## Rodar e publicar
+
+Local, com Docker (sobe front e back juntos):
+
+```bash
+docker compose up -d --build
+```
+
+App em <http://localhost:8090>, API direta em <http://localhost:3100>. As portas
+são diferentes das de desenvolvimento (5173 e 3000) para os dois conviverem.
+
+### Railway
+
+Dois serviços a partir deste repositório. O que muda entre eles é o **Root
+Directory**; cada um já traz `Dockerfile` e `railway.json`.
+
+| Serviço | Root Directory | Variáveis |
+|---|---|---|
+| backend | `backend` | `PLANNER_DATA_DIR=/app/data`, e monte um volume nesse caminho |
+| frontend | `frontend` | `API_URL=https://SEU-BACKEND.up.railway.app` (sem `/api` no fim) |
+
+`PORT` é injetada pelo Railway nos dois; não defina à mão.
+
+Três pontos que não são adivinháveis:
+
+- **O volume é obrigatório.** O disco do contêiner é efêmero e a persistência é
+  em arquivo JSON, então sem volume cada publicação apaga tarefas, metas e
+  lembretes.
+- **O fuso vai na imagem** (`TZ=America/Recife`, já no Dockerfile). Um contêiner
+  sobe em UTC, e o backend calcula "hoje" pela hora local: sem isso, os
+  lembretes de hoje somem toda noite a partir das 21h.
+- **O frontend não chama o backend direto.** Ele pede `/api` na própria origem e
+  o nginx repassa, o mesmo desenho do proxy do Vite em desenvolvimento. Por isso
+  a URL do backend não fica compilada no bundle e não há CORS para configurar.
