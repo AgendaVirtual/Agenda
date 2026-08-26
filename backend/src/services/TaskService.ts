@@ -1,9 +1,10 @@
-import { FileRepository } from "../persistence/FileRepository";
+import { FileRepository, IRepository } from "../persistence/FileRepository";
 import { CategoryRepository } from "../repositories/CategoryRepository";
-import { CreateTaskDTO, Task } from "../types/entities";
+import { Category, CreateTaskDTO, Task } from "../types/entities";
 import { Shift, TaskPriority, TaskStatus, TimeBlockType } from "../types/enums";
 import { AppError } from "../utils/errors";
 import { isValidISODate } from "../utils/reportCalculations";
+import { criarRepositorioDeCategorias, criarRepositorioDeTarefas } from "../persistence/repositorios";
 
 export class TaskRepository extends FileRepository<Task> {
   constructor() {
@@ -83,8 +84,8 @@ function validateTaskData(data: CreateTaskDTO): void {
 
 export class TaskService {
   constructor(
-    private repository = new TaskRepository(),
-    private categoryRepository = new CategoryRepository()
+    private repository: IRepository<Task> = criarRepositorioDeTarefas(),
+    private categoryRepository: IRepository<Category> = criarRepositorioDeCategorias()
   ) {}
 
   // Garante que a categoria informada realmente existe (integração com P3)

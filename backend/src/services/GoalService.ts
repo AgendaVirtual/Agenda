@@ -1,9 +1,11 @@
+import { IRepository } from "../persistence/FileRepository";
 import { GoalRepository } from "../repositories/GoalRepository";
 import { CategoryRepository } from "../repositories/CategoryRepository";
-import { CreateGoalDTO, Goal } from "../types/entities";
+import { Category, CreateGoalDTO, Goal } from "../types/entities";
 import { GoalPeriod, GoalStatus } from "../types/enums";
 import { AppError } from "../utils/errors";
 import { isValidISODate } from "../utils/reportCalculations";
+import { criarRepositorioDeCategorias, criarRepositorioDeMetas } from "../persistence/repositorios";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const GOAL_CREATE_FIELDS = new Set([
@@ -79,8 +81,8 @@ function validateGoalPeriod(
 
 export class GoalService {
   constructor(
-    private repository = new GoalRepository(),
-    private categoryRepository = new CategoryRepository()
+    private repository: IRepository<Goal> = criarRepositorioDeMetas(),
+    private categoryRepository: IRepository<Category> = criarRepositorioDeCategorias()
   ) {}
 
   private async validateCategoryExists(categoryId: string): Promise<void> {

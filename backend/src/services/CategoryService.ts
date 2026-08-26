@@ -7,6 +7,7 @@ import {
   UpdateCategoryDTO,
 } from "../types/entities";
 import { AppError } from "../utils/errors";
+import { criarRepositorioDeCategorias } from "../persistence/repositorios";
 
 export const DEFAULT_CATEGORIES: CreateCategoryDTO[] = [
   { name: "Faculdade", color: "#3F51B5" },
@@ -99,7 +100,7 @@ export function assignDefaultColor(usedColors: string[]): string {
 
 export class CategoryService {
   constructor(
-    private repository: IRepository<Category> = new CategoryRepository()
+    private repository: IRepository<Category> = criarRepositorioDeCategorias()
   ) {}
 
   async create(data: CreateCategoryDTO): Promise<Category> {

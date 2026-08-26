@@ -15,6 +15,7 @@ import {
   getLocalISODate,
   isValidISODate,
 } from "../utils/reportCalculations";
+import { criarRepositorioDeLembretes } from "../persistence/repositorios";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const REMINDER_WRITE_FIELDS = new Set([
@@ -160,7 +161,7 @@ export function getNextOccurrence(
 
 export class ReminderService {
   constructor(
-    private repository: IRepository<Reminder> = new ReminderRepository()
+    private repository: IRepository<Reminder> = criarRepositorioDeLembretes()
   ) {}
 
   async create(data: CreateReminderDTO): Promise<Reminder> {

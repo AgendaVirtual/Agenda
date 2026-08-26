@@ -19,6 +19,7 @@ import {
   isValidISODate,
 } from "../utils/reportCalculations";
 import { AppError } from "../utils/errors";
+import { criarRepositorioDeLembretes, criarRepositorioDeMetas, criarRepositorioDeTarefas } from "../persistence/repositorios";
 
 interface TaskReader {
   findAll(): Promise<Task[]>;
@@ -36,9 +37,9 @@ const UPCOMING_REMINDER_DAYS = 7;
 
 export class DashboardService {
   constructor(
-    private taskRepository: TaskReader = new TaskRepository(),
-    private goalRepository: GoalReader = new GoalRepository(),
-    private reminderRepository: ReminderReader = new ReminderRepository()
+    private taskRepository: TaskReader = criarRepositorioDeTarefas(),
+    private goalRepository: GoalReader = criarRepositorioDeMetas(),
+    private reminderRepository: ReminderReader = criarRepositorioDeLembretes()
   ) {}
 
   async getToday(referenceDate?: string): Promise<DashboardSummaryDTO> {
