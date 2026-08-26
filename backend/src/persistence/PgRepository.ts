@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { IRepository } from "./FileRepository";
 import { query } from "./db";
+import { exigirUsuarioAtual } from "./contexto";
 
 type Mapa = Record<string, string>;
 
@@ -12,12 +13,18 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
 
   constructor(
     private readonly tabela: string,
-    mapa: Mapa
+    mapa: Mapa,
+    private readonly porUsuario = false
   ) {
     this.colunas = mapa;
     this.campos = Object.fromEntries(
       Object.entries(mapa).map(([campo, coluna]) => [coluna, campo])
     );
+  }
+
+  private filtroDeDono(posicao: number): { sql: string; valores: unknown[] } {
+    if (!this.porUsuario) return { sql: "", valores: [] };
+    return { sql: ` AND user_id = $${posicao}`, valores: [exigirUsuarioAtual()] };
   }
 
   private paraLinha(dados: Record<string, unknown>): [string[], unknown[]] {
@@ -34,15 +41,18 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   private paraEntidade(linha: Record<string, unknown>): T {
     const saida: Record<string, unknown> = {};
     for (const [coluna, valor] of Object.entries(linha)) {
-      if (valor === null) continue;
-      saida[this.campos[coluna] ?? coluna] = valor;
+      const campo = this.campos[coluna];
+      if (campo === undefined || valor === null) continue;
+      saida[campo] = valor;
     }
     return saida as T;
   }
 
   async findAll(): Promise<T[]> {
+    const dono = this.filtroDeDono(1);
     const linhas = await query<Record<string, unknown>>(
-      `SELECT * FROM ${this.tabela}`
+      `SELECT * FROM ${this.tabela} WHERE TRUE${dono.sql}`,
+      dono.valores
     );
     return linhas.map((l) => this.paraEntidade(l));
   }
@@ -50,16 +60,24 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   async findById(id: string): Promise<T | undefined> {
     if (!UUID.test(id)) return undefined;
 
+    const dono = this.filtroDeDono(2);
     const linhas = await query<Record<string, unknown>>(
-      `SELECT * FROM ${this.tabela} WHERE id = $1`,
-      [id]
+      `SELECT * FROM ${this.tabela} WHERE id = $1${dono.sql}`,
+      [id, ...dono.valores]
     );
     return linhas[0] ? this.paraEntidade(linhas[0]) : undefined;
   }
 
   async create(dados: Omit<T, "id">): Promise<T> {
-    const registro = { ...(dados as Record<string, unknown>), id: randomUUID() };
+    const registro: Record<string, unknown> = {
+      ...(dados as Record<string, unknown>),
+      id: randomUUID(),
+    };
     const [colunas, valores] = this.paraLinha(registro);
+    if (this.porUsuario) {
+      colunas.push("user_id");
+      valores.push(exigirUsuarioAtual());
+    }
     const marcadores = colunas.map((_, i) => `$${i + 1}`).join(", ");
     const linhas = await query<Record<string, unknown>>(
       `INSERT INTO ${this.tabela} (${colunas.join(", ")})
@@ -77,10 +95,11 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
     if (colunas.length === 0) return this.findById(id);
 
     const atribuicoes = colunas.map((c, i) => `${c} = $${i + 1}`).join(", ");
+    const dono = this.filtroDeDono(colunas.length + 2);
     const linhas = await query<Record<string, unknown>>(
       `UPDATE ${this.tabela} SET ${atribuicoes}
-       WHERE id = $${colunas.length + 1} RETURNING *`,
-      [...valores, id]
+       WHERE id = $${colunas.length + 1}${dono.sql} RETURNING *`,
+      [...valores, id, ...dono.valores]
     );
     return linhas[0] ? this.paraEntidade(linhas[0]) : undefined;
   }
@@ -88,9 +107,10 @@ export class PgRepository<T extends { id: string }> implements IRepository<T> {
   async delete(id: string): Promise<boolean> {
     if (!UUID.test(id)) return false;
 
+    const dono = this.filtroDeDono(2);
     const linhas = await query<{ id: string }>(
-      `DELETE FROM ${this.tabela} WHERE id = $1 RETURNING id`,
-      [id]
+      `DELETE FROM ${this.tabela} WHERE id = $1${dono.sql} RETURNING id`,
+      [id, ...dono.valores]
     );
     return linhas.length > 0;
   }
