@@ -343,16 +343,21 @@ export class TaskService {
         : current.alertLeadMinutes,
     } as CreateTaskDTO;
 
-    // Se o horário mudou e ninguém disse o bloco na mão, ele e o turno voltam
-    // a ser deduzidos.
+    // Tres caminhos: quem mexeu no horario tem bloco e turno rededuzidos;
+    // quem mandou o bloco na mao segue a normalizacao antiga; e quem nao
+    // tocou em nenhum dos dois fica exatamente como estava - senao uma
+    // edicao de descricao apagaria o horario de uma tarefa de turno.
+    const blocoNaMao = hasField("timeBlockType");
     const rededuzir =
-      !hasField("timeBlockType") &&
+      !blocoNaMao &&
       (hasField("time") || hasField("endTime")) &&
       typeof merged.time === "string";
 
     const normalized = rededuzir
       ? derivarBloco({ ...merged, timeBlockType: undefined as never })
-      : this.normalizeTimeBlock(merged);
+      : blocoNaMao
+        ? this.normalizeTimeBlock(merged)
+        : merged;
 
     validateTaskData(normalized);
     validarJanela(normalized);
