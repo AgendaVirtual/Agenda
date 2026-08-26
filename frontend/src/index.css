@@ -7,6 +7,14 @@
 
   --color-ink: #0d0e10; --color-ink-strong: #1e1f21; --color-ink-muted: #646f79; --color-ink-faint: #8b939b; --color-ink-soft: #464f58; --color-sidebar: #faf7f2; --color-canvas: #f5f4f3; --color-surface: #ffffff; --color-hairline: #dbdbdb; --color-hairline-strong: #c1c1c1; --color-accent: #55649e;
   --color-accent-soft: #eceef6;
+  --color-accent-2: #8b99cc;
+
+  --color-warm: #f1ebe1;
+  --color-warm-line: #ede8df;
+  --color-mint: #4c9e82;
+  --color-mint-ink: #3e8e5c;
+  --color-mint-soft: #e4f2e9;
+  --color-amber: #e8a13c;
 
   --color-danger: #f06a6a;
   --color-danger-soft: #fde9e9;
@@ -139,6 +147,165 @@
 
     dialog[open]::backdrop {
       animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Animacoes da landing. Todas param quando o sistema pede menos movimento. */
+@layer utilities {
+  @keyframes nx-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes nx-bell {
+    0%,
+    12% {
+      transform: rotate(0);
+    }
+    3% {
+      transform: rotate(14deg);
+    }
+    6% {
+      transform: rotate(-10deg);
+    }
+    9% {
+      transform: rotate(5deg);
+    }
+    100% {
+      transform: rotate(0);
+    }
+  }
+  @keyframes nx-check {
+    0%,
+    35% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.18);
+      opacity: 1;
+    }
+    60%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes nx-fill {
+    0%,
+    12% {
+      width: 16%;
+    }
+    60%,
+    100% {
+      width: 72%;
+    }
+  }
+  @keyframes nx-fill2 {
+    0%,
+    20% {
+      width: 10%;
+    }
+    70%,
+    100% {
+      width: 45%;
+    }
+  }
+  @keyframes nx-slide {
+    0%,
+    10% {
+      left: 28%;
+    }
+    90%,
+    100% {
+      left: 64%;
+    }
+  }
+  @keyframes nx-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes nx-blip {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    35% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    65% {
+      opacity: 0.35;
+      transform: scale(0.9);
+    }
+  }
+  @keyframes nx-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes nx-strike {
+    0%,
+    10% {
+      stroke-dashoffset: 1;
+      opacity: 1;
+    }
+    45%,
+    82% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    93%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+  @keyframes nx-slidein {
+    0% {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    10%,
+    78% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    90%,
+    100% {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes nx-seg {
+    0%,
+    4% {
+      opacity: 0.15;
+    }
+    18%,
+    88% {
+      opacity: 1;
+    }
+    96%,
+    100% {
+      opacity: 0.15;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [class*="anim-"],
+    [style*="animation"] {
+      animation: none !important;
+    }
+    [style*="stroke-dashoffset"] {
+      stroke-dashoffset: 0 !important;
     }
   }
 }

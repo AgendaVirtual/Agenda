@@ -1,8 +1,15 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DailyPlannerPage } from "./pages/DailyPlannerPage";
 import { GoalsPage } from "./pages/GoalsPage";
+import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RemindersPage } from "./pages/RemindersPage";
 import { ReportsPage } from "./pages/ReportsPage";
@@ -14,6 +21,7 @@ import { Button } from "./components/ui/Button";
 
 function ExigeConta() {
   const { conta, carregando, indisponivel, reconferir } = useSessao();
+  const { pathname } = useLocation();
 
   if (carregando) {
     return (
@@ -34,7 +42,15 @@ function ExigeConta() {
     );
   }
 
-  if (!conta) return <Navigate to="/entrar" replace />;
+  // Quem chega deslogado na raiz vê a apresentação; nas telas internas,
+  // vai direto para o login.
+  if (!conta) {
+    return pathname === "/" ? (
+      <LandingPage />
+    ) : (
+      <Navigate to="/entrar" replace />
+    );
+  }
 
   return <AppShell />;
 }
