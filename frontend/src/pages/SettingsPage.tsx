@@ -448,7 +448,7 @@ function FormularioDeCategoria({
     try {
       await onSubmit(nome.trim(), cor);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao criar categoria");
+      setErro(e instanceof Error ? e.message : "Não deu para criar a categoria.");
     } finally {
       setEnviando(false);
     }

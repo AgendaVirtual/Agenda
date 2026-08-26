@@ -56,7 +56,7 @@ export function RemindersPage() {
 
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar lembrete");
+      setError(err instanceof Error ? err.message : "Não deu para criar o lembrete.");
     }
   }
 
@@ -66,7 +66,7 @@ export function RemindersPage() {
       setReminders((prev) => prev.filter((r) => r.id !== id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao remover lembrete");
+      setError(err instanceof Error ? err.message : "Não deu para remover o lembrete.");
     }
   }
 
@@ -87,7 +87,7 @@ export function RemindersPage() {
         }
       />
 
-      {error && (
+      {!formOpen && error && (
         <div className="mb-6">
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         </div>
@@ -96,6 +96,8 @@ export function RemindersPage() {
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
+        error={error}
+        onDismissError={() => setError(null)}
         title="Novo lembrete"
         description="Uma vez, numa data marcada, ou toda semana no mesmo dia."
       >

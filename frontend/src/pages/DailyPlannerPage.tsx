@@ -187,7 +187,7 @@ export function DailyPlannerPage() {
       setFormOpen(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para criar a tarefa.");
     }
   }
 
@@ -198,7 +198,7 @@ export function DailyPlannerPage() {
       setEditingTask(null);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao editar tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para salvar a tarefa.");
     }
   }
 
@@ -208,7 +208,7 @@ export function DailyPlannerPage() {
       setTasks((prev) => prev.map((t) => (t.id === id ? task : t)));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar status");
+      setError(err instanceof Error ? err.message : "Não deu para mudar o status da tarefa.");
     }
   }
 
@@ -218,7 +218,7 @@ export function DailyPlannerPage() {
       setTasks((prev) => prev.filter((t) => t.id !== id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao remover tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para remover a tarefa.");
     }
   }
 
@@ -292,7 +292,7 @@ export function DailyPlannerPage() {
         </SelectInput>
       </div>
 
-      {error && (
+      {!formOpen && !editingTask && error && (
         <div className="mb-6">
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         </div>
@@ -303,6 +303,8 @@ export function DailyPlannerPage() {
         onClose={closeForm}
         title={editingTask ? "Editar tarefa" : "Nova tarefa"}
         description={formatDateLabel(date)}
+        error={error}
+        onDismissError={() => setError(null)}
       >
         <TaskForm
           key={editingTask?.id ?? "nova"}
