@@ -321,6 +321,15 @@ export class TaskService {
     const hasField = (field: keyof CreateTaskDTO): boolean =>
       Object.prototype.hasOwnProperty.call(data, field);
 
+    // O turno sai do horário. Aceitá-lo solto deixaria gravar "noite" numa
+    // tarefa das 08:00, e o relatório de turno mais produtivo conta por esse
+    // campo. Só o caminho antigo, que manda o bloco junto, ainda pode dizê-lo.
+    if (hasField("shift") && !hasField("timeBlockType")) {
+      throw new AppError(
+        "O turno vem do horário de início e não precisa ser enviado"
+      );
+    }
+
     // Usamos presença real da propriedade (e não ??) para que null/undefined
     // maliciosos não sejam silenciosamente substituídos pelo valor antigo.
     const merged = {

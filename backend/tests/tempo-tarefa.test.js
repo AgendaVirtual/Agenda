@@ -278,3 +278,39 @@ describe("status", () => {
     assert.equal(t.alertLeadMinutes, 30);
   });
 });
+
+describe("turno não vem do cliente", () => {
+  it("recusa shift solto no update", async () => {
+    const { service } = servico();
+    const t = await service.create(nova({ time: "08:00" }));
+    await assert.rejects(
+      () => service.update(t.id, { shift: Shift.NOITE }),
+      /turno vem do horário/
+    );
+  });
+
+  it("mantém o turno coerente com o horário depois da tentativa", async () => {
+    const { service, repo } = servico();
+    const t = await service.create(nova({ time: "08:00" }));
+    await service.update(t.id, { shift: Shift.NOITE }).catch(() => {});
+    const [guardada] = await repo.findAll();
+    assert.equal(guardada.shift, Shift.MANHA);
+  });
+
+  it("caminho antigo ainda aceita bloco e turno juntos", async () => {
+    const { service } = servico();
+    const t = await service.create(nova({ time: "08:00" }));
+    const virada = await service.update(t.id, {
+      timeBlockType: TimeBlockType.TURNO,
+      shift: Shift.TARDE,
+    });
+    assert.equal(virada.shift, Shift.TARDE);
+    assert.equal(virada.time, undefined);
+  });
+
+  it("create ignora shift solto e deduz do horário", async () => {
+    const { service } = servico();
+    const t = await service.create(nova({ time: "08:00", shift: Shift.NOITE }));
+    assert.equal(t.shift, Shift.MANHA);
+  });
+});
