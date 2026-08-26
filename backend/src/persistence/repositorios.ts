@@ -3,7 +3,11 @@ import { FileRepository, IRepository } from "./FileRepository";
 import { PgRepository } from "./PgRepository";
 import { usaPostgres } from "./db";
 
-const MAPA_CATEGORIA = { id: "id", name: "name", color: "color" };
+const MAPA_CATEGORIA = {
+  id: "id",
+  name: "name",
+  color: "color",
+};
 
 const MAPA_TAREFA = {
   id: "id",
@@ -43,7 +47,7 @@ function escolher<T extends { id: string }>(
   arquivo: string
 ): IRepository<T> {
   return usaPostgres()
-    ? new PgRepository<T>(tabela, mapa)
+    ? new PgRepository<T>(tabela, mapa, true)
     : new FileRepository<T>(arquivo);
 }
 

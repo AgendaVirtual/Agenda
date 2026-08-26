@@ -38,14 +38,24 @@ export async function fecharPool(): Promise<void> {
 }
 
 const ESQUEMA = `
+CREATE TABLE IF NOT EXISTS users (
+  id            UUID PRIMARY KEY,
+  name          TEXT NOT NULL,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS categories (
-  id    UUID PRIMARY KEY,
-  name  TEXT NOT NULL,
-  color TEXT NOT NULL
+  id      UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name    TEXT NOT NULL,
+  color   TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
   id               UUID PRIMARY KEY,
+  user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description      TEXT NOT NULL,
   category_id      UUID NOT NULL REFERENCES categories(id),
   date             DATE NOT NULL,
@@ -58,6 +68,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 
 CREATE TABLE IF NOT EXISTS goals (
   id          UUID PRIMARY KEY,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
   category_id UUID NOT NULL REFERENCES categories(id),
   period      TEXT NOT NULL,
@@ -68,6 +79,7 @@ CREATE TABLE IF NOT EXISTS goals (
 
 CREATE TABLE IF NOT EXISTS reminders (
   id          UUID PRIMARY KEY,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
   type        TEXT NOT NULL,
   recurrence  TEXT NOT NULL,
@@ -76,10 +88,33 @@ CREATE TABLE IF NOT EXISTS reminders (
   time        TEXT
 );
 
-CREATE INDEX IF NOT EXISTS tasks_date_idx ON tasks (date);
-CREATE INDEX IF NOT EXISTS goals_period_idx ON goals (period);
+CREATE INDEX IF NOT EXISTS tasks_date_idx ON tasks (user_id, date);
+CREATE INDEX IF NOT EXISTS goals_period_idx ON goals (user_id, period);
+CREATE INDEX IF NOT EXISTS categories_user_idx ON categories (user_id);
+CREATE INDEX IF NOT EXISTS reminders_user_idx ON reminders (user_id);
+`;
+
+const MIGRACAO_DONO = `
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'categories' AND column_name = 'user_id'
+  ) THEN
+    DELETE FROM tasks;
+    DELETE FROM goals;
+    DELETE FROM reminders;
+    DELETE FROM categories;
+
+    ALTER TABLE categories ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+    ALTER TABLE tasks      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+    ALTER TABLE goals      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+    ALTER TABLE reminders  ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 `;
 
 export async function migrar(): Promise<void> {
   await query(ESQUEMA);
+  await query(MIGRACAO_DONO);
 }

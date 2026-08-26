@@ -10,7 +10,9 @@ async function start(): Promise<void> {
     console.log("Esquema do banco aplicado");
   }
 
-  await new CategoryService().seedDefaults();
+  if (!usaPostgres()) {
+    await new CategoryService().seedDefaults();
+  }
 
   app.listen(PORT, () => {
     console.log(
