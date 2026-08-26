@@ -123,8 +123,8 @@ function BarraDoTopo() {
 function Abertura() {
   return (
     <header className="relative mx-auto flex max-w-[1200px] flex-col items-center px-5 pt-12 text-center sm:px-8 sm:pt-[72px]">
-      <Rabisco />
-      <Curva />
+      <Rabisco className="absolute top-[300px] left-[2%] hidden h-[178px] w-[200px] lg:block" />
+      <Curva className="absolute top-[340px] right-[4%] hidden h-[118px] w-[104px] lg:block" />
 
       <h1 className="m-0 max-w-[900px] text-[clamp(34px,7.4vw,62px)] leading-[1.15] font-medium tracking-[-0.025em] text-balance text-ink">
         Um hub para organizar sua vida de{" "}
@@ -187,19 +187,22 @@ function Abertura() {
           Ver funcionalidades →
         </a>
       </div>
+
+      <div className="mt-6 flex w-full items-end justify-between gap-4 lg:hidden">
+        <Rabisco className="h-[110px] w-[124px] shrink-0" />
+        <Curva className="h-[78px] w-[69px] shrink-0" />
+      </div>
     </header>
   );
 }
 
-function Rabisco() {
+function Rabisco({ className }: { className: string }) {
   return (
     <svg
-      width="200"
-      height="178"
       viewBox="0 0 200 178"
       fill="none"
       aria-hidden="true"
-      className="absolute top-[300px] left-[2%] hidden -rotate-3 lg:block"
+      className={"-rotate-3 " + className}
     >
       <path
         d="M22 24 C52 18 92 19 104 24 C108 62 107 112 102 138 C72 144 38 143 24 138 C17 100 17 56 22 24 Z"
@@ -268,15 +271,13 @@ function Rabisco() {
   );
 }
 
-function Curva() {
+function Curva({ className }: { className: string }) {
   return (
     <svg
-      width="104"
-      height="118"
       viewBox="0 0 104 118"
       fill="none"
       aria-hidden="true"
-      className="absolute top-[340px] right-[4%] hidden lg:block"
+      className={className}
     >
       <path
         d="M16 8 C66 16 92 48 76 104"
@@ -1038,34 +1039,22 @@ function Radar() {
           />
         ))}
 
-        <PinDoRadar
-          className="top-[18%] -left-14"
-          cor="#4C9E82"
-          titulo="Academia"
-          detalhe="07:00 · Saúde"
-          atraso="6s"
-        />
-        <PinDoRadar
-          className="top-[33%] -right-20"
-          cor="#F06A6A"
-          titulo="Prova de Cálculo II"
-          detalhe="sex · 10:00 · Faculdade"
-          atraso="7s"
-        />
-        <PinDoRadar
-          className="bottom-[23%] -left-[72px]"
-          cor="#E8A13C"
-          titulo="Plantão do estágio"
-          detalhe="14:00 · Trabalho"
-          atraso="8s"
-        />
+        {PINOS.map((pino) => (
+          <PinDoRadar
+            key={pino.titulo}
+            className={"absolute hidden lg:flex " + pino.posicao}
+            {...pino}
+          />
+        ))}
 
-        <div
-          className="absolute -right-10 bottom-[13%] hidden max-w-[220px] rounded-[11px] bg-ink px-4 py-2.5 text-[12.5px] leading-[1.4] text-white shadow-[0_6px_18px_rgba(13,14,16,0.22)] lg:block"
-          style={{ animation: "nx-float 7s ease-in-out 2.2s infinite" }}
-        >
-          Reunião de alinhamento entrou na sua rotina de quinta.
-        </div>
+        <Recado className="absolute -right-10 bottom-[13%] hidden max-w-[220px] lg:block" />
+      </div>
+
+      <div className="mx-auto mt-8 flex max-w-[380px] flex-col gap-2.5 lg:hidden">
+        {PINOS.map((pino) => (
+          <PinDoRadar key={pino.titulo} className="flex" {...pino} />
+        ))}
+        <Recado className="mt-1" />
       </div>
 
       <div className="mt-16 flex justify-center">
@@ -1076,6 +1065,30 @@ function Radar() {
     </section>
   );
 }
+
+const PINOS = [
+  {
+    posicao: "top-[18%] -left-14",
+    cor: "#4C9E82",
+    titulo: "Academia",
+    detalhe: "07:00 · Saúde",
+    atraso: "6s",
+  },
+  {
+    posicao: "top-[33%] -right-20",
+    cor: "#F06A6A",
+    titulo: "Prova de Cálculo II",
+    detalhe: "sex · 10:00 · Faculdade",
+    atraso: "7s",
+  },
+  {
+    posicao: "bottom-[23%] -left-[72px]",
+    cor: "#E8A13C",
+    titulo: "Plantão do estágio",
+    detalhe: "14:00 · Trabalho",
+    atraso: "8s",
+  },
+];
 
 function PinDoRadar({
   className,
@@ -1089,12 +1102,13 @@ function PinDoRadar({
   titulo: string;
   detalhe: string;
   atraso: string;
+  posicao?: string;
 }) {
   return (
     <div
       className={
-        "absolute hidden items-center gap-2.5 rounded-xl bg-surface py-2.5 pr-4 pl-3 " +
-        "shadow-[0_1px_3px_rgba(0,0,0,0.1),0_4px_14px_rgba(0,0,0,0.07)] lg:flex " +
+        "items-center gap-2.5 rounded-xl bg-surface py-2.5 pr-4 pl-3 " +
+        "shadow-[0_1px_3px_rgba(0,0,0,0.1),0_4px_14px_rgba(0,0,0,0.07)] " +
         className
       }
       style={{ animation: `nx-float ${atraso} ease-in-out infinite` }}
@@ -1104,13 +1118,24 @@ function PinDoRadar({
         style={{ background: cor }}
       />
       <span className="flex flex-col gap-px">
-        <span className="text-[13px] font-semibold whitespace-nowrap">
-          {titulo}
-        </span>
-        <span className="text-[11.5px] whitespace-nowrap text-ink-faint">
-          {detalhe}
-        </span>
+        <span className="text-[13px] font-semibold">{titulo}</span>
+        <span className="text-[11.5px] text-ink-faint">{detalhe}</span>
       </span>
+    </div>
+  );
+}
+
+function Recado({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={
+        "rounded-[11px] bg-ink px-4 py-2.5 text-[12.5px] leading-[1.4] text-white " +
+        "shadow-[0_6px_18px_rgba(13,14,16,0.22)] " +
+        className
+      }
+      style={{ animation: "nx-float 7s ease-in-out 2.2s infinite" }}
+    >
+      Reunião de alinhamento entrou na sua rotina de quinta.
     </div>
   );
 }
