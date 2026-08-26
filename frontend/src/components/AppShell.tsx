@@ -5,12 +5,9 @@ import {
   aoMudarLembretes,
   getUpcomingReminders,
 } from "../services/reminderApi";
-import {
-  aoMudarPreferencias,
-  iniciaisDe,
-  lerPreferencias,
-} from "../services/preferencias";
+import { iniciaisDe } from "../services/preferencias";
 import type { Reminder } from "../types/entities";
+import { useSessao } from "../services/sessaoContexto";
 import marcaNexo from "../assets/nexo-symbol.svg";
 
 const ICONS = {
@@ -324,10 +321,8 @@ export function AppShell() {
 }
 
 function CartaoDePerfil({ recolhido }: { recolhido: boolean }) {
-  const [perfil, setPerfil] = useState(() => lerPreferencias().perfil);
-  useEffect(() => aoMudarPreferencias((p) => setPerfil(p.perfil)), []);
-
-  const nome = perfil.nome.trim() || "Sua conta";
+  const { conta } = useSessao();
+  const nome = conta?.name.trim() || "Sua conta";
 
   return (
     <NavLink
@@ -339,7 +334,7 @@ function CartaoDePerfil({ recolhido }: { recolhido: boolean }) {
       }
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-ink text-xs font-semibold text-white">
-        {iniciaisDe(perfil.nome)}
+        {iniciaisDe(nome)}
       </span>
 
       {!recolhido && (
@@ -370,13 +365,24 @@ function CartaoDePerfil({ recolhido }: { recolhido: boolean }) {
 }
 
 function BotaoSair({ recolhido }: { recolhido: boolean }) {
-  const motivo = "Disponível quando o login existir no servidor";
+  const { sair } = useSessao();
+  const [saindo, setSaindo] = useState(false);
+
+  async function encerrar() {
+    setSaindo(true);
+    try {
+      await sair();
+    } finally {
+      setSaindo(false);
+    }
+  }
 
   return (
     <button
       type="button"
-      disabled
-      title={motivo}
+      onClick={() => void encerrar()}
+      disabled={saindo}
+      title="Encerrar a sessão neste aparelho"
       className={
         "flex h-11 w-full items-center rounded-soft text-[15px] text-ink-faint lg:h-10 " +
         "transition-colors not-disabled:hover:bg-danger-soft not-disabled:hover:text-danger " +
@@ -395,7 +401,9 @@ function BotaoSair({ recolhido }: { recolhido: boolean }) {
       >
         <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />
       </svg>
-      <span className={recolhido ? "sr-only" : ""}>Sair</span>
+      <span className={recolhido ? "sr-only" : ""}>
+        {saindo ? "Saindo..." : "Sair"}
+      </span>
     </button>
   );
 }

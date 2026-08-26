@@ -82,7 +82,9 @@ export function createAuthRouter(authService = new AuthService()): Router {
       const id = await usuarioDaRequisicao(req);
       if (!id) throw new AppError("Faça login para continuar", 401);
 
-      await authService.trocarSenha(id, req.body);
+      const passwordHash = await authService.trocarSenha(id, req.body);
+
+      gravarCookieDeSessao(res, emitirToken(id, passwordHash));
       res.json({ success: true });
     })
   );

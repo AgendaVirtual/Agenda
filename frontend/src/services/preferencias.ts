@@ -1,8 +1,3 @@
-export interface Perfil {
-  nome: string;
-  email: string;
-}
-
 export interface FaixasDeTurno {
   tarde: number;
 
@@ -10,7 +5,6 @@ export interface FaixasDeTurno {
 }
 
 export interface Preferencias {
-  perfil: Perfil;
   turnos: FaixasDeTurno;
   menuRecolhido: boolean;
 }
@@ -18,7 +12,6 @@ export interface Preferencias {
 const CHAVE = "nexo:preferencias";
 
 export const PADRAO: Preferencias = {
-  perfil: { nome: "", email: "" },
   turnos: { tarde: 12, noite: 18 },
   menuRecolhido: false,
 };
@@ -36,10 +29,6 @@ function normalizar(bruto: unknown): Preferencias {
   const noite = limitarHora(turnos.noite, PADRAO.turnos.noite);
 
   return {
-    perfil: {
-      nome: typeof obj.perfil?.nome === "string" ? obj.perfil.nome : "",
-      email: typeof obj.perfil?.email === "string" ? obj.perfil.email : "",
-    },
     turnos: noite > tarde ? { tarde, noite } : PADRAO.turnos,
     menuRecolhido: obj.menuRecolhido === true,
   };

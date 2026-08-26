@@ -6,6 +6,7 @@ type Size = "md" | "sm";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  fullWidth?: boolean;
   children: ReactNode;
 }
 
@@ -32,13 +33,14 @@ const SIZES: Record<Size, string> = {
 export function Button({
   variant = "primary",
   size = "md",
+  fullWidth = false,
   className = "",
   children,
   ...rest
 }: ButtonProps) {
   return (
     <button
-      className={`${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${fullWidth ? "w-full" : ""} ${className}`}
       {...rest}
     >
       {children}

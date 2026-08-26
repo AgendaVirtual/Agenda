@@ -28,6 +28,7 @@ import type {
 import { TaskStatus, TimeBlockType } from "../types/enums";
 import { addDays, formatDateLabel, taskTimeKey, todayISO } from "../utils/date";
 import { plural, SHIFT_LABELS } from "../utils/labels";
+import { useSessao } from "../services/sessaoContexto";
 
 const RESUMO_LEMBRETES = 5;
 
@@ -37,6 +38,7 @@ export function DashboardPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [concluidasOntem, setConcluidasOntem] = useState<number | null>(null);
   const [prefs, setPrefs] = useState(lerPreferencias);
+  const { conta } = useSessao();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [criando, setCriando] = useState(false);
@@ -119,9 +121,7 @@ export function DashboardPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-[40px] leading-[1.1] font-light tracking-[-0.02em] text-ink">
             {saudacao()}
-            {prefs.perfil.nome.trim()
-              ? `, ${primeiroNome(prefs.perfil.nome)}`
-              : ""}
+{conta?.name.trim() ? `, ${primeiroNome(conta.name)}` : ""}
           </h1>
           <p className="text-[15px] font-light text-ink-faint">
             {formatDateLabel(today)}
