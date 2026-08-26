@@ -123,8 +123,8 @@ function BarraDoTopo() {
 function Abertura() {
   return (
     <header className="relative mx-auto flex max-w-[1200px] flex-col items-center px-5 pt-12 text-center sm:px-8 sm:pt-[72px]">
-      <Rabisco className="absolute top-[300px] left-[2%] hidden h-[178px] w-[200px] lg:block" />
-      <Curva className="absolute top-[340px] right-[4%] hidden h-[118px] w-[104px] lg:block" />
+      <Rabisco className="absolute top-[330px] left-0 h-[71px] w-[80px] sm:top-[318px] sm:left-3 sm:h-[107px] sm:w-[120px] lg:top-[300px] lg:left-[2%] lg:h-[178px] lg:w-[200px]" />
+      <Curva className="absolute top-[335px] right-0 h-[68px] w-[60px] sm:top-[326px] sm:right-3 sm:h-[91px] sm:w-[80px] lg:top-[340px] lg:right-[4%] lg:h-[118px] lg:w-[104px]" />
 
       <h1 className="m-0 max-w-[900px] text-[clamp(34px,7.4vw,62px)] leading-[1.15] font-medium tracking-[-0.025em] text-balance text-ink">
         Um hub para organizar sua vida de{" "}
@@ -186,11 +186,6 @@ function Abertura() {
         >
           Ver funcionalidades →
         </a>
-      </div>
-
-      <div className="mt-6 flex w-full items-end justify-between gap-4 lg:hidden">
-        <Rabisco className="h-[110px] w-[124px] shrink-0" />
-        <Curva className="h-[78px] w-[69px] shrink-0" />
       </div>
     </header>
   );
