@@ -56,13 +56,28 @@ Directory**; cada um já traz `Dockerfile` e `railway.json`.
 
 Some um serviço de **PostgreSQL** do próprio Railway e ligue-o ao backend.
 
-| Serviço | Root Directory | Variáveis |
-|---|---|---|
-| backend | `backend` | `DATABASE_URL` (vem do Postgres ao ligar os serviços) |
-| frontend | `frontend` | `API_URL=https://SEU-BACKEND.up.railway.app` (sem `/api` no fim) |
+| Serviço | Root Directory | Config file | Variáveis |
+|---|---|---|---|
+| backend | `/backend` | `/backend/railway.json` | `DATABASE_URL` (vem do Postgres ao ligar os serviços), `AUTH_SECRET` |
+| frontend | `/frontend` | `/frontend/railway.json` | `API_URL=https://SEU-BACKEND.up.railway.app` (sem `/api` no fim) |
 
 `PORT` é injetada pelo Railway nos dois; não defina à mão. Se o banco estiver
 fora da rede interna do Railway, acrescente `PGSSL=require` no backend.
+Use um `AUTH_SECRET` longo e aleatório no backend (por exemplo, 32 caracteres ou
+mais); ele assina o cookie de sessão dos usuários.
+
+Passo a passo no Railway:
+
+1. Crie um projeto e adicione um serviço **PostgreSQL**.
+2. Adicione um serviço pelo GitHub apontando para este repositório.
+3. No serviço do backend, configure **Root Directory** como `/backend` e
+   **Config File Path** como `/backend/railway.json`.
+4. Conecte o Postgres ao backend para expor `DATABASE_URL` e crie `AUTH_SECRET`.
+5. Adicione outro serviço pelo mesmo repositório para o frontend.
+6. No serviço do frontend, configure **Root Directory** como `/frontend` e
+   **Config File Path** como `/frontend/railway.json`.
+7. Depois que o backend tiver domínio público, configure no frontend
+   `API_URL=https://SEU-BACKEND.up.railway.app` e redeploy.
 
 Três pontos que não são adivinháveis:
 
