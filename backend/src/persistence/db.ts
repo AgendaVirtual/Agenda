@@ -1,4 +1,5 @@
 import { Pool, types } from "pg";
+import { AppError } from "../utils/errors";
 
 types.setTypeParser(1082, (valor) => valor);
 
@@ -22,12 +23,30 @@ export function getPool(): Pool {
   return pool;
 }
 
+const ERROS_DE_ENTRADA: Record<string, { mensagem: string; status: number }> = {
+  "23505": { mensagem: "Já existe um registro com esse valor", status: 409 },
+  "23503": { mensagem: "Referência a um registro que não existe", status: 400 },
+  "23514": { mensagem: "Valor fora do permitido para esse campo", status: 400 },
+  "22001": { mensagem: "Valor longo demais para esse campo", status: 400 },
+  "22003": { mensagem: "Valor numérico fora da faixa permitida", status: 400 },
+};
+
 export async function query<T = unknown>(
   texto: string,
   valores: unknown[] = []
 ): Promise<T[]> {
-  const resultado = await getPool().query(texto, valores);
-  return resultado.rows as T[];
+  try {
+    const resultado = await getPool().query(texto, valores);
+    return resultado.rows as T[];
+  } catch (erro) {
+    const codigo = (erro as { code?: string }).code;
+    const conhecido = codigo ? ERROS_DE_ENTRADA[codigo] : undefined;
+
+    if (conhecido) {
+      throw new AppError(conhecido.mensagem, conhecido.status);
+    }
+    throw erro;
+  }
 }
 
 export async function fecharPool(): Promise<void> {
@@ -47,6 +66,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS categories (
+  seq     BIGSERIAL,
   id      UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name    TEXT NOT NULL,
@@ -54,6 +74,7 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
+  seq     BIGSERIAL,
   id               UUID PRIMARY KEY,
   user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description      TEXT NOT NULL,
@@ -67,6 +88,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 CREATE TABLE IF NOT EXISTS goals (
+  seq     BIGSERIAL,
   id          UUID PRIMARY KEY,
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
@@ -78,6 +100,7 @@ CREATE TABLE IF NOT EXISTS goals (
 );
 
 CREATE TABLE IF NOT EXISTS reminders (
+  seq     BIGSERIAL,
   id          UUID PRIMARY KEY,
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
@@ -88,33 +111,75 @@ CREATE TABLE IF NOT EXISTS reminders (
   time        TEXT
 );
 
-CREATE INDEX IF NOT EXISTS tasks_date_idx ON tasks (user_id, date);
-CREATE INDEX IF NOT EXISTS goals_period_idx ON goals (user_id, period);
+`;
+
+const MIGRACAO_DONO = `
+DELETE FROM tasks;
+DELETE FROM goals;
+DELETE FROM reminders;
+DELETE FROM categories;
+
+ALTER TABLE categories ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE tasks      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE goals      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE reminders  ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+`;
+
+const MIGRACAO_SEQ = `
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS seq BIGSERIAL;
+ALTER TABLE tasks      ADD COLUMN IF NOT EXISTS seq BIGSERIAL;
+ALTER TABLE goals      ADD COLUMN IF NOT EXISTS seq BIGSERIAL;
+ALTER TABLE reminders  ADD COLUMN IF NOT EXISTS seq BIGSERIAL;
+`;
+
+async function precisaDeDono(): Promise<boolean> {
+  const linhas = await query<{ existe: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_name = 'categories' AND column_name = 'user_id'
+     ) AS existe`
+  );
+  return !linhas[0]?.existe;
+}
+
+async function contarLegado(): Promise<number> {
+  const linhas = await query<{ total: string }>(
+    `SELECT (SELECT count(*) FROM categories)
+          + (SELECT count(*) FROM tasks)
+          + (SELECT count(*) FROM goals)
+          + (SELECT count(*) FROM reminders) AS total`
+  );
+  return Number(linhas[0]?.total ?? 0);
+}
+
+const INDICES = `
+DROP INDEX IF EXISTS tasks_date_idx;
+DROP INDEX IF EXISTS goals_period_idx;
+
+CREATE INDEX IF NOT EXISTS tasks_user_date_idx ON tasks (user_id, date);
+CREATE INDEX IF NOT EXISTS goals_user_period_idx ON goals (user_id, period);
 CREATE INDEX IF NOT EXISTS categories_user_idx ON categories (user_id);
 CREATE INDEX IF NOT EXISTS reminders_user_idx ON reminders (user_id);
 `;
 
-const MIGRACAO_DONO = `
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'categories' AND column_name = 'user_id'
-  ) THEN
-    DELETE FROM tasks;
-    DELETE FROM goals;
-    DELETE FROM reminders;
-    DELETE FROM categories;
-
-    ALTER TABLE categories ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
-    ALTER TABLE tasks      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
-    ALTER TABLE goals      ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
-    ALTER TABLE reminders  ADD COLUMN user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
-  END IF;
-END $$;
-`;
-
 export async function migrar(): Promise<void> {
   await query(ESQUEMA);
-  await query(MIGRACAO_DONO);
+
+  if (await precisaDeDono()) {
+    const legado = await contarLegado();
+
+    if (legado > 0 && process.env.NEXO_DESCARTAR_DADOS !== "confirmo") {
+      throw new Error(
+        `O banco tem ${legado} registros anteriores às contas de usuário. ` +
+          "Não existe dono para atribuir a eles, então a migração os apagaria. " +
+          "Se esses dados são descartáveis, suba novamente com " +
+          "NEXO_DESCARTAR_DADOS=confirmo. Caso contrário, faça a cópia antes."
+      );
+    }
+
+    await query(MIGRACAO_DONO);
+  }
+
+  await query(MIGRACAO_SEQ);
+  await query(INDICES);
 }
