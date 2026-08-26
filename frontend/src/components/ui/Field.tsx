@@ -7,7 +7,7 @@ import type {
 } from "react";
 
 const CONTROL =
-  "rounded-soft border px-3.5 text-[15px] text-ink " +
+  "rounded-soft border px-3.5 text-base text-ink lg:text-[15px] " +
   "transition-[background-color,border-color,box-shadow] " +
   "placeholder:text-ink-muted " +
   "focus:outline-none focus:ring-[3px] focus:ring-accent/10 " +
@@ -17,7 +17,7 @@ type ControlSize = "md" | "sm";
 
 const SIZES: Record<ControlSize, string> = {
   md: "h-11",
-  sm: "h-11 px-3 text-sm lg:h-10",
+  sm: "h-11 px-3 text-base lg:h-10 lg:text-sm",
 };
 
 type ControlVariant = "bordered" | "subtle";

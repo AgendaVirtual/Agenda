@@ -75,6 +75,23 @@ function currentTimeHHMM(): string {
   ).padStart(2, "0")}`;
 }
 
+function SetaDeDia({ sentido }: { sentido: "anterior" | "proximo" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={sentido === "anterior" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+    </svg>
+  );
+}
+
 function NowMarker() {
   return (
     <li
@@ -262,9 +279,11 @@ export function DailyPlannerPage() {
         <Button
           variant="ghost"
           size="sm"
+          aria-label="Dia anterior"
           onClick={() => setDate((d) => addDays(d, -1))}
         >
-          Dia anterior
+          <SetaDeDia sentido="anterior" />
+          <span className="hidden sm:inline">Dia anterior</span>
         </Button>
 
         <TextInput
@@ -280,9 +299,11 @@ export function DailyPlannerPage() {
         <Button
           variant="ghost"
           size="sm"
+          aria-label="Próximo dia"
           onClick={() => setDate((d) => addDays(d, 1))}
         >
-          Próximo dia
+          <span className="hidden sm:inline">Próximo dia</span>
+          <SetaDeDia sentido="proximo" />
         </Button>
 
         {date !== todayISO() && (

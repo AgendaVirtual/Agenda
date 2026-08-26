@@ -29,6 +29,9 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Trava o ajuste automatico de fonte quando o aparelho gira. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -37,6 +40,10 @@
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.5;
+    /* Mata o zoom de toque duplo e o atraso de 300ms que ele causa. */
+    touch-action: manipulation;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
 
   :focus-visible {

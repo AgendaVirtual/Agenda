@@ -275,37 +275,18 @@ export function AppShell() {
       </aside>
 
       <header className="sticky top-0 z-10 shrink-0 border-b border-hairline bg-sidebar lg:hidden">
-        <div className="flex h-[68px] items-center gap-4 px-4">
+        <div className="flex h-14 items-center justify-between gap-4 px-4">
           <span className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-ink">
             <img
               src={marcaNexo}
               alt=""
               aria-hidden="true"
-              className="h-8 w-8"
+              className="h-7 w-7"
             />
             Nexo
           </span>
 
-          <nav
-            aria-label="Navegação principal"
-            className="-mx-2 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2"
-          >
-            {TODOS_OS_ITENS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  "flex h-11 shrink-0 items-center rounded-pill px-4 text-base transition-colors " +
-                  (isActive
-                    ? "bg-surface font-medium text-ink"
-                    : "text-ink-muted hover:text-ink")
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+          <AtalhoDaConta />
         </div>
       </header>
 
@@ -315,13 +296,75 @@ export function AppShell() {
       >
         <main
           key={pathname}
-          className="anim-rise mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-8 lg:px-10"
+          className="anim-rise mx-auto w-full max-w-[1400px] px-4 pt-6 pb-[calc(76px+env(safe-area-inset-bottom))] sm:px-8 lg:px-10 lg:pb-6"
         >
           <TopBar trilha={trilha} lembretes={lembretes} tarefas={tarefas} />
           <Outlet />
         </main>
       </div>
+
+      <BarraInferior />
     </div>
+  );
+}
+
+// No celular a navegacao principal mora embaixo, ao alcance do polegar, com
+// os cinco destinos sempre visiveis. Conta e ajustes ficam no topo.
+function BarraInferior() {
+  return (
+    <nav
+      aria-label="Navegação principal"
+      className={
+        "fixed inset-x-0 bottom-0 z-20 border-t border-hairline bg-sidebar/95 " +
+        "pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      }
+    >
+      <ul className="flex items-stretch">
+        {TODOS_OS_ITENS.map((item) => (
+          <li key={item.to} className="min-w-0 flex-1">
+            <NavLink
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                "flex h-[62px] flex-col items-center justify-center gap-1 px-1 transition-colors " +
+                (isActive ? "text-ink" : "text-ink-faint")
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <NavIcon ativo={isActive}>{item.icon}</NavIcon>
+                  <span
+                    className={
+                      "max-w-full truncate text-[11px] leading-none " +
+                      (isActive ? "font-semibold" : "font-medium")
+                    }
+                  >
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function AtalhoDaConta() {
+  const { conta } = useSessao();
+  const nome = conta?.name.trim() || "Sua conta";
+
+  return (
+    <NavLink
+      to="/ajustes"
+      aria-label={`${nome} - ajustes da conta`}
+      className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-pill"
+    >
+      <span className="flex h-8 w-8 items-center justify-center rounded-pill bg-ink text-xs font-semibold text-white">
+        {iniciaisDe(nome)}
+      </span>
+    </NavLink>
   );
 }
 

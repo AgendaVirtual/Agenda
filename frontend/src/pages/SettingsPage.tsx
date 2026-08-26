@@ -121,6 +121,7 @@ export function SettingsPage() {
 
         <Turnos prefs={prefs} onChange={atualizar} />
         <Seguranca />
+        <Sessao />
       </div>
 
       <Modal
@@ -415,6 +416,49 @@ function Seguranca() {
           )}
         </div>
       </form>
+    </Card>
+  );
+}
+
+// No celular a lateral nao existe, entao este e o unico caminho para sair.
+function Sessao() {
+  const { conta, sair } = useSessao();
+  const [saindo, setSaindo] = useState(false);
+  const [falhou, setFalhou] = useState(false);
+
+  async function encerrar() {
+    setSaindo(true);
+    setFalhou(false);
+    try {
+      await sair();
+    } catch {
+      setFalhou(true);
+    } finally {
+      setSaindo(false);
+    }
+  }
+
+  return (
+    <Card>
+      <SectionTitle>Sessão</SectionTitle>
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm font-light text-ink-muted">
+          Você está nesta conta como{" "}
+          <span className="font-medium text-ink">
+            {conta?.email ?? "sua conta"}
+          </span>
+          .
+        </p>
+
+        <Button
+          variant="secondary"
+          onClick={() => void encerrar()}
+          disabled={saindo}
+        >
+          {saindo ? "Saindo..." : falhou ? "Não deu; tentar de novo" : "Sair"}
+        </Button>
+      </div>
     </Card>
   );
 }
