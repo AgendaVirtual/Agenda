@@ -4,10 +4,16 @@ export { CategoryRepository };
 import {
   Category,
   CreateCategoryDTO,
+  Goal,
+  Task,
   UpdateCategoryDTO,
 } from "../types/entities";
 import { AppError } from "../utils/errors";
-import { criarRepositorioDeCategorias } from "../persistence/repositorios";
+import {
+  criarRepositorioDeCategorias,
+  criarRepositorioDeMetas,
+  criarRepositorioDeTarefas,
+} from "../persistence/repositorios";
 
 export const DEFAULT_CATEGORIES: CreateCategoryDTO[] = [
   { name: "Faculdade", color: "#3F51B5" },
@@ -100,7 +106,9 @@ export function assignDefaultColor(usedColors: string[]): string {
 
 export class CategoryService {
   constructor(
-    private repository: IRepository<Category> = criarRepositorioDeCategorias()
+    private repository: IRepository<Category> = criarRepositorioDeCategorias(),
+    private taskRepository?: Pick<IRepository<Task>, "findAll">,
+    private goalRepository?: Pick<IRepository<Goal>, "findAll">
   ) {}
 
   async create(data: CreateCategoryDTO): Promise<Category> {
@@ -150,10 +158,31 @@ export class CategoryService {
   }
 
   async remove(id: string): Promise<void> {
-    const deleted = await this.repository.delete(id);
-    if (!deleted) {
+    const existing = await this.repository.findById(id);
+    if (!existing) {
       throw new AppError("Categoria não encontrada", 404);
     }
+
+    const tasks = this.taskRepository ?? criarRepositorioDeTarefas();
+    const goals = this.goalRepository ?? criarRepositorioDeMetas();
+
+    const [allTasks, allGoals] = await Promise.all([
+      tasks.findAll(),
+      goals.findAll(),
+    ]);
+
+    const usedBy =
+      allTasks.filter((task) => task.categoryId === id).length +
+      allGoals.filter((goal) => goal.categoryId === id).length;
+
+    if (usedBy > 0) {
+      throw new AppError(
+        `Categoria em uso por ${usedBy} ${usedBy === 1 ? "item" : "itens"}; remova ou reclassifique antes de excluir`,
+        409
+      );
+    }
+
+    await this.repository.delete(id);
   }
 
   async seedDefaults(): Promise<void> {
