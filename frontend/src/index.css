@@ -226,6 +226,20 @@
       left: 64%;
     }
   }
+  @keyframes nx-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(240, 106, 106, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 9px rgba(240, 106, 106, 0);
+    }
+  }
+  @keyframes nx-dash {
+    to {
+      stroke-dashoffset: -28;
+    }
+  }
   @keyframes nx-spin {
     to {
       transform: rotate(360deg);
