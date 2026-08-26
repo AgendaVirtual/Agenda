@@ -31,6 +31,7 @@ export function LandingPage() {
       <BarraDoTopo />
       <Abertura />
       <Vitrine />
+      <Conector />
       <NoRitmo />
       <Funcionalidades />
       <Radar />
@@ -198,7 +199,7 @@ function Rabisco() {
       viewBox="0 0 200 178"
       fill="none"
       aria-hidden="true"
-      className="absolute top-[300px] left-[2%] hidden -rotate-3 xl:block"
+      className="absolute top-[300px] left-[2%] hidden -rotate-3 lg:block"
     >
       <path
         d="M22 24 C52 18 92 19 104 24 C108 62 107 112 102 138 C72 144 38 143 24 138 C17 100 17 56 22 24 Z"
@@ -275,7 +276,7 @@ function Curva() {
       viewBox="0 0 104 118"
       fill="none"
       aria-hidden="true"
-      className="absolute top-[340px] right-[4%] hidden xl:block"
+      className="absolute top-[340px] right-[4%] hidden lg:block"
     >
       <path
         d="M16 8 C66 16 92 48 76 104"
@@ -513,17 +514,21 @@ function LateralDaVitrine() {
   );
 }
 
-const LINHAS_DA_VITRINE = [
-  { hora: "07:00", texto: "Academia", cor: "#4C9E82", feita: true },
-  { hora: "08:15", texto: "Revisar slides de PLP", cor: "#55649E", feita: true },
-  { hora: "10:30", texto: "Reunião do grupo", cor: "#55649E", feita: true },
-  { hora: "14:00", texto: "E-mails do estágio", cor: "#F06A6A", feita: false },
-  { hora: "19:30", texto: "Commit da tela de metas", cor: "#E8A13C", feita: false },
+const TAREFAS_DA_VITRINE = [
+  { texto: "Revisar slides de PLP", quando: "08:00", feita: true },
+  { texto: "Responder e-mails do estágio", quando: "14:00", feita: false },
+  { texto: "Estudar paradigma funcional", quando: "Tarde", feita: false },
+];
+
+const LEMBRETES_DA_VITRINE = [
+  { texto: "Reunião com o orientador", quando: "14:00" },
+  { texto: "Monitoria de Estruturas de Dados", quando: "16:00" },
+  { texto: "Entregar relatório da disciplina", quando: "23:59" },
 ];
 
 function ConteudoDaVitrine() {
   return (
-    <div className="min-w-0 flex-1 px-5 pt-4 pb-6 sm:px-7 sm:pb-7">
+    <div className="min-w-0 flex-1 px-5 pt-4 pb-5 sm:px-7 sm:pb-7">
       <div className="flex h-9 items-center justify-between">
         <span className="text-xs text-ink-faint">
           Hoje <span className="mx-1 text-hairline">/</span>{" "}
@@ -539,86 +544,140 @@ function ConteudoDaVitrine() {
       </div>
 
       <div className="mt-4 rounded-[16px] bg-sidebar px-5 py-5 sm:px-6">
-        <div className="flex items-start gap-3.5">
-          <span className="text-[44px] leading-none font-semibold tracking-[-0.03em]">
-            2
-          </span>
-          <span className="flex flex-col gap-0.5 pt-0.5">
-            <span className="text-[15px] font-semibold">
-              tarefas para fechar o dia
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <span className="text-[44px] leading-none font-semibold tracking-[-0.03em]">
+              2
             </span>
-            <span className="text-[13px] text-ink-muted">
-              3 de 5 concluídas · melhor que ontem
+            <span className="flex flex-col gap-0.5 pt-0.5">
+              <span className="text-base font-semibold">
+                tarefas para fechar o dia
+              </span>
+              <span className="text-[13px] text-ink-muted">
+                5 de 7 concluídas · melhor que ontem
+              </span>
             </span>
-          </span>
+          </div>
+
+          <div className="flex gap-6 text-xs text-ink-faint">
+            <span className="flex flex-col gap-0.5">
+              Metas em andamento
+              <span className="text-lg font-semibold text-ink">5</span>
+            </span>
+            <span className="flex flex-col gap-0.5">
+              Lembretes · 7 dias
+              <span className="text-lg font-semibold text-ink">8</span>
+            </span>
+          </div>
         </div>
 
-        <div className="relative mt-5 h-[26px]">
-          <span className="absolute inset-x-0 top-[9px] h-0.5 rounded-sm bg-warm-line" />
-          {[8, 22, 46, 74, 90].map((pos, i) => (
+        <div className="relative mt-6 h-[34px]">
+          <span className="absolute inset-x-0 top-2 h-0.5 rounded-sm bg-warm-line" />
+          {[6, 18, 34].map((pos) => (
             <span
               key={pos}
-              className="absolute top-1.5 h-2 w-2 rounded-pill"
-              style={{
-                left: `${pos}%`,
-                background: i < 3 ? "#55649E" : "#D8D2C6",
-              }}
+              className="absolute top-[5px] h-2 w-2 rounded-pill bg-accent"
+              style={{ left: `${pos}%` }}
             />
           ))}
           <span
-            className="absolute top-0 h-5 w-0.5 bg-ink"
-            style={{ animation: "nx-slide 7s ease-in-out infinite alternate" }}
+            className="absolute top-[3px] left-[52%] h-2.5 w-2.5 rounded-pill border-2 border-danger bg-sidebar"
+            style={{ animation: "nx-pulse 2.4s ease-out infinite" }}
           />
-        </div>
-        <div className="mt-2 flex justify-between text-[11px] text-ink-faint">
-          <span>07h</span>
-          <span>13h</span>
-          <span>18h</span>
-          <span>22h</span>
+          <span className="absolute top-0 left-[57%] h-[18px] w-0.5 bg-ink" />
+          <span className="absolute top-[3px] left-[70%] h-2.5 w-2.5 rounded-pill border-2 border-dotted border-accent bg-sidebar" />
+          <span className="absolute top-[5px] left-[88%] h-2 w-2 rounded-pill bg-[#D8D2C6]" />
+
+          <span className="absolute top-[22px] left-[5%] text-[10px] text-ink-faint">
+            07h
+          </span>
+          <span className="absolute top-[22px] left-[33%] text-[10px] text-ink-faint">
+            13h
+          </span>
+          <span className="absolute top-[22px] left-[55.5%] text-[10px] font-semibold text-ink">
+            14:12
+          </span>
+          <span className="absolute top-[22px] left-[87%] text-[10px] text-ink-faint">
+            22h
+          </span>
         </div>
       </div>
 
-      <ul className="mt-5 flex flex-col">
-        {LINHAS_DA_VITRINE.map((linha) => (
-          <li
-            key={linha.hora}
-            className="flex items-center gap-3 border-t border-warm-line py-2.5 first:border-t-0"
-          >
-            <span className="tabular w-[42px] shrink-0 text-[11.5px] text-ink-faint">
-              {linha.hora}
+      <div className="mt-3.5 grid gap-3.5 sm:grid-cols-2">
+        <ListaDaVitrine titulo="Tarefas de hoje">
+          {TAREFAS_DA_VITRINE.map((linha) => (
+            <span key={linha.texto} className="flex justify-between gap-2">
+              <span
+                className={
+                  "min-w-0 truncate " +
+                  (linha.feita ? "text-ink-faint line-through" : "")
+                }
+              >
+                {linha.texto}
+              </span>
+              <span className="shrink-0 text-ink-faint">{linha.quando}</span>
             </span>
-            <span
-              className={
-                "min-w-0 flex-1 truncate text-[13px] " +
-                (linha.feita ? "text-ink-faint line-through" : "text-ink")
-              }
-            >
-              {linha.texto}
+          ))}
+        </ListaDaVitrine>
+
+        <ListaDaVitrine titulo="Próximos lembretes">
+          {LEMBRETES_DA_VITRINE.map((linha) => (
+            <span key={linha.texto} className="flex justify-between gap-2">
+              <span className="min-w-0 truncate">{linha.texto}</span>
+              <span className="shrink-0 text-ink-faint">{linha.quando}</span>
             </span>
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-pill"
-              style={{ background: linha.cor }}
-            />
-            <span
-              className={
-                "shrink-0 rounded-pill px-2 py-[3px] text-[10px] font-semibold " +
-                (linha.feita
-                  ? "bg-mint-soft text-mint-ink"
-                  : "bg-canvas text-ink-muted")
-              }
-            >
-              {linha.feita ? "Executada" : "Pendente"}
-            </span>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </ListaDaVitrine>
+      </div>
+    </div>
+  );
+}
+
+function ListaDaVitrine({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[14px] border border-warm-line px-[18px] py-4">
+      <div className="mb-2.5 text-[13.5px] font-semibold">{titulo}</div>
+      <div className="flex flex-col gap-[9px] text-[13px] text-ink-soft">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// O tracejado que liga a vitrine ao resto da pagina.
+function Conector() {
+  return (
+    <div className="mt-12 flex justify-center">
+      <svg
+        width="120"
+        height="92"
+        viewBox="0 0 120 92"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M22 4 C92 22 28 52 80 88"
+          stroke="#55649E"
+          strokeWidth="2"
+          strokeDasharray="6 8"
+          strokeLinecap="round"
+          opacity="0.5"
+          style={{ animation: "nx-dash 1.8s linear infinite" }}
+        />
+      </svg>
     </div>
   );
 }
 
 function NoRitmo() {
   return (
-    <section className="mx-auto max-w-[1200px] px-5 pt-14 sm:px-8">
+    <section className="mx-auto max-w-[1200px] px-5 sm:px-8">
       <div className="flex flex-col items-center gap-4 text-center">
         <Etiqueta>No ritmo do seu dia</Etiqueta>
         <Titulo>Planeje de manhã, confira à noite</Titulo>
@@ -983,26 +1042,26 @@ function Radar() {
           className="top-[18%] -left-14"
           cor="#4C9E82"
           titulo="Academia"
-          detalhe="Seg, qua e sex · 07:00"
+          detalhe="07:00 · Saúde"
           atraso="6s"
         />
         <PinDoRadar
           className="top-[33%] -right-20"
           cor="#F06A6A"
-          titulo="Entrega do relatório"
-          detalhe="Sexta · 23:59"
+          titulo="Prova de Cálculo II"
+          detalhe="sex · 10:00 · Faculdade"
           atraso="7s"
         />
         <PinDoRadar
           className="bottom-[23%] -left-[72px]"
           cor="#E8A13C"
-          titulo="Monitoria"
-          detalhe="Quarta · 16:00"
+          titulo="Plantão do estágio"
+          detalhe="14:00 · Trabalho"
           atraso="8s"
         />
 
         <div
-          className="absolute -right-10 bottom-[13%] hidden max-w-[220px] rounded-[11px] bg-ink px-4 py-2.5 text-[12.5px] leading-[1.4] text-white shadow-[0_6px_18px_rgba(13,14,16,0.22)] xl:block"
+          className="absolute -right-10 bottom-[13%] hidden max-w-[220px] rounded-[11px] bg-ink px-4 py-2.5 text-[12.5px] leading-[1.4] text-white shadow-[0_6px_18px_rgba(13,14,16,0.22)] lg:block"
           style={{ animation: "nx-float 7s ease-in-out 2.2s infinite" }}
         >
           Reunião de alinhamento entrou na sua rotina de quinta.
@@ -1035,7 +1094,7 @@ function PinDoRadar({
     <div
       className={
         "absolute hidden items-center gap-2.5 rounded-xl bg-surface py-2.5 pr-4 pl-3 " +
-        "shadow-[0_1px_3px_rgba(0,0,0,0.1),0_4px_14px_rgba(0,0,0,0.07)] xl:flex " +
+        "shadow-[0_1px_3px_rgba(0,0,0,0.1),0_4px_14px_rgba(0,0,0,0.07)] lg:flex " +
         className
       }
       style={{ animation: `nx-float ${atraso} ease-in-out infinite` }}
