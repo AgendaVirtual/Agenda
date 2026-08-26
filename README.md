@@ -49,6 +49,20 @@ docker compose up -d --build
 App em <http://localhost:8090>, API direta em <http://localhost:3100>. As portas
 são diferentes das de desenvolvimento (5173 e 3000) para os dois conviverem.
 
+### Conta de demonstração
+
+Conta nova nasce só com as seis categorias padrão. Para a apresentação, popule
+uma com um mês de dados plausíveis:
+
+```bash
+node backend/scripts/seed-demo.mjs
+```
+
+Depois entre com **demo@nexo.app** e a senha **nexo123456**. O script cria a
+conta se ela não existir, entra se já existir, e não duplica nada se já houver
+dados de hoje. Aponte para outro servidor com `NEXO_API`, e troque as
+credenciais com `NEXO_DEMO_EMAIL` e `NEXO_DEMO_SENHA`.
+
 ### Railway
 
 Dois serviços a partir deste repositório. O que muda entre eles é o **Root
