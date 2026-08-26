@@ -2,6 +2,7 @@ import type {
   TaskStatus,
   TaskPriority,
   TimeBlockType,
+  TaskRecurrence,
   Shift,
   GoalPeriod,
   GoalStatus,
@@ -22,9 +23,14 @@ export interface Task {
   date: string;
   timeBlockType: TimeBlockType;
   time?: string;
+  endTime?: string;
   shift?: Shift;
   status: TaskStatus;
   priority: TaskPriority;
+  recurrence?: TaskRecurrence;
+  recurrenceGroupId?: string;
+  alertEnabled?: boolean;
+  alertLeadMinutes?: number;
 }
 
 export interface Goal {
@@ -47,7 +53,10 @@ export interface Reminder {
   time?: string;
 }
 
-export type CreateTaskDTO = Omit<Task, "id" | "status">;
+export type CreateTaskDTO = Omit<
+  Task,
+  "id" | "status" | "timeBlockType" | "shift" | "recurrenceGroupId"
+>;
 export type UpdateTaskStatusDTO = { status: TaskStatus };
 
 export interface ApiResponse<T> {

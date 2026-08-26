@@ -6,7 +6,8 @@ import {
   getUpcomingReminders,
 } from "../services/reminderApi";
 import { iniciaisDe } from "../services/preferencias";
-import type { Reminder } from "../types/entities";
+import type { Reminder, Task } from "../types/entities";
+import { getAllTasks } from "../services/taskApi";
 import { useSessao } from "../services/sessaoContexto";
 import marcaNexo from "../assets/nexo-symbol.svg";
 
@@ -111,12 +112,16 @@ export function AppShell() {
   const areaRef = useRef<HTMLDivElement>(null);
 
   const [lembretes, setLembretes] = useState<Reminder[]>([]);
+  const [tarefas, setTarefas] = useState<Task[]>([]);
 
   useEffect(() => {
     let ativo = true;
     const carregar = () => {
       getUpcomingReminders()
         .then((lista) => ativo && setLembretes(lista))
+        .catch(() => {});
+      getAllTasks()
+        .then((lista) => ativo && setTarefas(lista))
         .catch(() => {});
     };
 
@@ -312,7 +317,7 @@ export function AppShell() {
           key={pathname}
           className="anim-rise mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-8 lg:px-10"
         >
-          <TopBar trilha={trilha} lembretes={lembretes} />
+          <TopBar trilha={trilha} lembretes={lembretes} tarefas={tarefas} />
           <Outlet />
         </main>
       </div>

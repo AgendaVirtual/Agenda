@@ -21,6 +21,15 @@ export const TimeBlockType = {
 } as const;
 export type TimeBlockType = (typeof TimeBlockType)[keyof typeof TimeBlockType];
 
+export const TaskRecurrence = {
+  UNICA: "UNICA",
+  DIARIA: "DIARIA",
+  SEMANAL: "SEMANAL",
+  MENSAL: "MENSAL",
+} as const;
+export type TaskRecurrence =
+  (typeof TaskRecurrence)[keyof typeof TaskRecurrence];
+
 export const Shift = {
   MANHA: "MANHA",
   TARDE: "TARDE",

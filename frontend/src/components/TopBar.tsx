@@ -1,13 +1,14 @@
-import type { Reminder } from "../types/entities";
+import type { Reminder, Task } from "../types/entities";
 import { NotificationsBell } from "./NotificationsBell";
 
 interface TopBarProps {
   trilha: string[];
 
   lembretes: Reminder[];
+  tarefas: Task[];
 }
 
-export function TopBar({ trilha, lembretes }: TopBarProps) {
+export function TopBar({ trilha, lembretes, tarefas }: TopBarProps) {
   return (
     <div className="mb-6 flex items-center justify-between gap-4">
       <nav aria-label="Trilha" className="flex min-w-0 items-center gap-1.5">
@@ -32,7 +33,7 @@ export function TopBar({ trilha, lembretes }: TopBarProps) {
         ))}
       </nav>
 
-      <NotificationsBell lembretes={lembretes} />
+      <NotificationsBell lembretes={lembretes} tarefas={tarefas} />
     </div>
   );
 }

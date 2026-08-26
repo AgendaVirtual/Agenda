@@ -21,7 +21,7 @@ import {
   updateTaskStatus,
 } from "../services/taskApi";
 import type { Category, CreateTaskDTO, Task } from "../types/entities";
-import { Shift, TaskStatus, TimeBlockType } from "../types/enums";
+import { Shift, TaskRecurrence, TaskStatus } from "../types/enums";
 import { addDays, formatDateLabel, taskTimeKey, todayISO } from "../utils/date";
 import { plural, SHIFT_LABELS } from "../utils/labels";
 import {
@@ -40,10 +40,8 @@ function shiftForTime(time: string, turnos: FaixasDeTurno): Shift {
 }
 
 function shiftOf(task: Task, turnos: FaixasDeTurno): Shift {
-  if (task.timeBlockType === TimeBlockType.TURNO && task.shift) {
-    return task.shift;
-  }
-  return shiftForTime(task.time ?? "00:00", turnos);
+  if (task.time) return shiftForTime(task.time, turnos);
+  return task.shift ?? Shift.MANHA;
 }
 
 function groupTasksByShift(
@@ -60,8 +58,8 @@ function groupTasksByShift(
 
   for (const shift of SHIFT_ORDER) {
     groups[shift].sort((a, b) => {
-      const aIsShift = a.timeBlockType === TimeBlockType.TURNO;
-      const bIsShift = b.timeBlockType === TimeBlockType.TURNO;
+      const aIsShift = !a.time;
+      const bIsShift = !b.time;
       if (aIsShift !== bIsShift) return aIsShift ? -1 : 1;
       return taskTimeKey(a).localeCompare(taskTimeKey(b));
     });
@@ -105,6 +103,7 @@ export function DailyPlannerPage() {
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [paraRemover, setParaRemover] = useState<Task | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("");
 
   const [newTaskId, setNewTaskId] = useState<string | null>(null);
@@ -182,23 +181,31 @@ export function DailyPlannerPage() {
   async function handleCreateTask(data: CreateTaskDTO) {
     try {
       const task = await createTask(data);
-      setTasks((prev) => [...prev, task]);
-      setNewTaskId(task.id);
       setFormOpen(false);
       setError(null);
+      if (task.date !== date) {
+        setDate(task.date);
+        return;
+      }
+      setTasks((prev) => [...prev, task]);
+      setNewTaskId(task.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para criar a tarefa.");
     }
   }
 
   async function handleUpdateTask(id: string, data: CreateTaskDTO) {
     try {
       const task = await updateTask(id, data);
-      setTasks((prev) => prev.map((t) => (t.id === id ? task : t)));
       setEditingTask(null);
       setError(null);
+      if (task.date !== date) {
+        setDate(task.date);
+        return;
+      }
+      setTasks((prev) => prev.map((t) => (t.id === id ? task : t)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao editar tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para salvar a tarefa.");
     }
   }
 
@@ -208,17 +215,26 @@ export function DailyPlannerPage() {
       setTasks((prev) => prev.map((t) => (t.id === id ? task : t)));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar status");
+      setError(err instanceof Error ? err.message : "Não deu para mudar o status da tarefa.");
     }
   }
 
-  async function handleDeleteTask(id: string) {
+  function pedirRemocao(task: Task) {
+    const repete =
+      task.recurrence !== undefined && task.recurrence !== TaskRecurrence.UNICA;
+    if (repete) setParaRemover(task);
+    else void handleDeleteTask(task.id, "unica");
+  }
+
+  async function handleDeleteTask(id: string, escopo: "unica" | "serie") {
     try {
-      await deleteTask(id);
+      await deleteTask(id, escopo);
+      setParaRemover(null);
+      // A serie some das outras datas; aqui so essa ocorrencia esta na tela.
       setTasks((prev) => prev.filter((t) => t.id !== id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao remover tarefa");
+      setError(err instanceof Error ? err.message : "Não deu para remover a tarefa.");
     }
   }
 
@@ -292,7 +308,7 @@ export function DailyPlannerPage() {
         </SelectInput>
       </div>
 
-      {error && (
+      {!formOpen && !editingTask && error && (
         <div className="mb-6">
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         </div>
@@ -303,6 +319,8 @@ export function DailyPlannerPage() {
         onClose={closeForm}
         title={editingTask ? "Editar tarefa" : "Nova tarefa"}
         description={formatDateLabel(date)}
+        error={error}
+        onDismissError={() => setError(null)}
       >
         <TaskForm
           key={editingTask?.id ?? "nova"}
@@ -381,7 +399,7 @@ export function DailyPlannerPage() {
                             setFormOpen(false);
                             setEditingTask(task);
                           }}
-                          onDelete={() => handleDeleteTask(task.id)}
+                          onDelete={() => pedirRemocao(task)}
                           isNew={task.id === newTaskId}
                           staggerIndex={shiftOffset[shift] + index}
                           animate={!loading}
@@ -399,6 +417,40 @@ export function DailyPlannerPage() {
           </div>
         </div>
       )}
+
+      <Modal
+        open={paraRemover !== null}
+        onClose={() => setParaRemover(null)}
+        title="Remover tarefa que se repete"
+        description={paraRemover?.description}
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-sm font-light text-ink-muted">
+            Essa tarefa se repete em outros dias. Você quer tirar só a de hoje
+            ou a repetição inteira?
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="ghost" onClick={() => setParaRemover(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                paraRemover && void handleDeleteTask(paraRemover.id, "unica")
+              }
+            >
+              Só a de hoje
+            </Button>
+            <Button
+              onClick={() =>
+                paraRemover && void handleDeleteTask(paraRemover.id, "serie")
+              }
+            >
+              Todas as repetições
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

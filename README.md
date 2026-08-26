@@ -21,7 +21,7 @@ O **Planner Virtual** é uma aplicação focada em maximizar a organização pes
 ##  Funcionalidades Principais (Meta de Funcionalidades)
 
 *    **Painel Analítico (Dashboard):** Visão geral do dia com tarefas pendentes, metas em andamento, lembretes próximos e um **Indicador Geral de Produtividade** em formato de gráfico.
-*    **Gestão de Tarefas (Time-blocking):** Criação de tarefas divididas por blocos de tempo (30 min, 1h) ou turnos.
+*    **Gestão de Tarefas (Time-blocking):** Você informa a data e a hora de início, e opcionalmente a hora de fim. O bloco (meia hora, uma hora ou turno) e o turno do dia saem daí, calculados pelo servidor. A tarefa pode se repetir e pode avisar com a antecedência que você escolher.
 *    **Categorização Visual (Cores):** Tarefas e metas coloridas por categoria (Faculdade, Trabalho, Saúde, Lazer, Projetos Pessoais, Estudos) para rápida identificação.
 *    **Metas Estratégicas:** Definição de metas para a semana, mês e ano, com status de progressão (Cumprida, Parcialmente, Não cumprida).
 *    **Lembretes Inteligentes:** Alertas únicos ou recorrentes para reuniões, compras, exercícios, etc.

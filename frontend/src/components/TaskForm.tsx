@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from "react";
 import type { Category, CreateTaskDTO, Task } from "../types/entities";
-import { TaskPriority, TimeBlockType } from "../types/enums";
+import { TaskPriority, TaskRecurrence } from "../types/enums";
 import { PRIORITY_LABELS } from "../utils/labels";
-import { TimeBlockSelector, type TimeBlockValue } from "./TimeBlockSelector";
+import { emMinutos } from "../utils/tempo";
+import {
+  TaskScheduleFields,
+  type AgendaDaTarefa,
+} from "./TaskScheduleFields";
 import { Button } from "./ui/Button";
 import { Field, SelectInput, TextInput } from "./ui/Field";
 
@@ -30,10 +34,13 @@ export function TaskForm({
   const [priority, setPriority] = useState<TaskPriority>(
     initialTask?.priority ?? TaskPriority.MEDIA,
   );
-  const [timeBlock, setTimeBlock] = useState<TimeBlockValue>({
-    timeBlockType: initialTask?.timeBlockType ?? TimeBlockType.UMA_HORA,
-    time: initialTask?.time,
-    shift: initialTask?.shift,
+  const [agenda, setAgenda] = useState<AgendaDaTarefa>({
+    date: initialTask?.date ?? date,
+    time: initialTask?.time ?? "",
+    endTime: initialTask?.endTime ?? "",
+    recurrence: initialTask?.recurrence ?? TaskRecurrence.UNICA,
+    alertEnabled: initialTask?.alertEnabled ?? false,
+    alertLeadMinutes: initialTask?.alertLeadMinutes ?? 30,
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -50,27 +57,30 @@ export function TaskForm({
       setError("Selecione uma categoria");
       return;
     }
-    if (timeBlock.timeBlockType !== TimeBlockType.TURNO && !timeBlock.time) {
-      setError("Informe um horário");
+    if (!agenda.date) {
+      setError("Escolha a data");
       return;
     }
-    if (timeBlock.timeBlockType === TimeBlockType.TURNO && !timeBlock.shift) {
-      setError("Selecione um turno");
+    if (!agenda.time) {
+      setError("Informe a que horas a tarefa começa");
+      return;
+    }
+    if (agenda.endTime && emMinutos(agenda.endTime) <= emMinutos(agenda.time)) {
+      setError("O fim precisa vir depois do começo");
       return;
     }
 
     setError(null);
-    const isShiftBlock = timeBlock.timeBlockType === TimeBlockType.TURNO;
-
     onSubmit({
       description: description.trim(),
       categoryId: effectiveCategoryId,
-      date,
+      date: agenda.date,
       priority,
-      timeBlockType: timeBlock.timeBlockType,
-      ...(isShiftBlock
-        ? { shift: timeBlock.shift }
-        : { time: timeBlock.time }),
+      time: agenda.time,
+      ...(agenda.endTime ? { endTime: agenda.endTime } : {}),
+      recurrence: agenda.recurrence,
+      alertEnabled: agenda.alertEnabled,
+      alertLeadMinutes: agenda.alertLeadMinutes,
     });
   }
 
@@ -128,12 +138,7 @@ export function TaskForm({
         </Field>
       </div>
 
-      <fieldset className="flex min-w-0 flex-col">
-        <legend className="mb-2 text-sm font-medium text-ink">
-          Bloco de tempo
-        </legend>
-        <TimeBlockSelector value={timeBlock} onChange={setTimeBlock} />
-      </fieldset>
+      <TaskScheduleFields value={agenda} onChange={setAgenda} />
 
       {error && (
         <p role="alert" className="text-[13px] font-light text-danger">

@@ -75,7 +75,7 @@ export function GoalsPage() {
       setFormOpen(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar meta");
+      setError(err instanceof Error ? err.message : "Não deu para criar a meta.");
     }
   }
 
@@ -85,7 +85,7 @@ export function GoalsPage() {
       setGoals((prev) => prev.map((g) => (g.id === id ? updated : g)));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar meta");
+      setError(err instanceof Error ? err.message : "Não deu para atualizar a meta.");
     }
   }
 
@@ -97,7 +97,7 @@ export function GoalsPage() {
         action={<Button onClick={() => setFormOpen(true)}>Nova meta</Button>}
       />
 
-      {error && (
+      {!formOpen && error && (
         <div className="mb-6">
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         </div>
@@ -106,6 +106,8 @@ export function GoalsPage() {
       <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
+        error={error}
+        onDismissError={() => setError(null)}
         title="Nova meta"
         description="Semana, mês ou ano - o resultado você marca quando o período fechar."
       >

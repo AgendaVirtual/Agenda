@@ -43,7 +43,7 @@ export async function request<T>(
     });
   } catch {
     throw new ErroDeApi(
-      "Não foi possível falar com o servidor. Verifique sua conexão.",
+      "Não consegui falar com o servidor. Veja sua conexão e tente de novo.",
       0,
     );
   }
@@ -65,7 +65,7 @@ export async function request<T>(
 
   if (!res.ok || !body.success) {
     throw new ErroDeApi(
-      body.error ?? "Erro ao comunicar com o servidor",
+      body.error ?? "Algo deu errado ao falar com o servidor.",
       res.status,
     );
   }
@@ -75,13 +75,13 @@ export async function request<T>(
 
 function mensagemDeRespostaCrua(status: number): string {
   if (status === 502 || status === 503 || status === 504) {
-    return "O servidor não está respondendo. Ele pode estar reiniciando ou fora do ar.";
+    return "O servidor está fora do ar agora. Costuma voltar em instantes.";
   }
   if (status === 404) {
-    return "Endereço não encontrado no servidor.";
+    return "Não encontrei isso no servidor.";
   }
   if (status >= 500) {
-    return "O servidor falhou ao responder.";
+    return "O servidor não conseguiu responder. Tente de novo.";
   }
-  return "O servidor respondeu em um formato inesperado.";
+  return "A resposta do servidor veio num formato que não entendi.";
 }

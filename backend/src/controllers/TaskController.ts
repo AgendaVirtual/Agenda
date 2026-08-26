@@ -50,8 +50,9 @@ router.patch(
 router.delete(
   "/:id",
   asyncHandler(async (req, res) => {
-    await taskService.remove(req.params.id);
-    res.json({ success: true });
+    const escopo = req.query.escopo === "serie" ? "serie" : "unica";
+    const removidas = await taskService.remove(req.params.id, escopo);
+    res.json({ success: true, data: { removidas } });
   })
 );
 

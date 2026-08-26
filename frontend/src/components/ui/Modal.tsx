@@ -1,11 +1,14 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { IconButton } from "./Button";
+import { ErrorBanner } from "./Feedback";
 
 interface ModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
   description?: string;
+  error?: string | null;
+  onDismissError?: () => void;
   children: ReactNode;
 }
 
@@ -14,6 +17,8 @@ export function Modal({
   onClose,
   title,
   description,
+  error,
+  onDismissError,
   children,
 }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -88,6 +93,11 @@ export function Modal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          {open && error && (
+            <div className="mb-4">
+              <ErrorBanner message={error} onDismiss={onDismissError} />
+            </div>
+          )}
           {open && children}
         </div>
       </div>

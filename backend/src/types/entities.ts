@@ -7,6 +7,7 @@ import {
   GoalStatus,
   ReminderRecurrence,
   ReminderType,
+  TaskRecurrence,
 } from "./enums";
 
 export interface Category {
@@ -21,10 +22,15 @@ export interface Task {
   categoryId: string;
   date: string; // ISO "YYYY-MM-DD"
   timeBlockType: TimeBlockType;
-  time?: string; // "HH:mm" quando timeBlockType != TURNO
-  shift?: Shift; // quando timeBlockType == TURNO
+  time?: string; // "HH:mm" de inicio
+  endTime?: string; // "HH:mm" de fim, opcional
+  shift?: Shift; // derivado do horario de inicio
   status: TaskStatus;
   priority: TaskPriority;
+  recurrence?: TaskRecurrence;
+  recurrenceGroupId?: string;
+  alertEnabled?: boolean;
+  alertLeadMinutes?: number;
 }
 
 export interface Goal {
