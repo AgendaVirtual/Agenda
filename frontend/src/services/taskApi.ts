@@ -13,10 +13,7 @@ export function createTask(data: CreateTaskDTO): Promise<Task> {
   });
 }
 
-export function updateTask(
-  id: string,
-  data: CreateTaskDTO
-): Promise<Task> {
+export function updateTask(id: string, data: CreateTaskDTO): Promise<Task> {
   return request<Task>(`/tasks/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -25,7 +22,7 @@ export function updateTask(
 
 export function updateTaskStatus(
   id: string,
-  status: TaskStatus
+  status: TaskStatus,
 ): Promise<Task> {
   return request<Task>(`/tasks/${id}/status`, {
     method: "PATCH",

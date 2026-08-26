@@ -1,30 +1,36 @@
 import { TaskStatus } from "../types/enums";
-
-const LABELS: Record<TaskStatus, string> = {
-  [TaskStatus.PENDENTE]: "Pendente",
-  [TaskStatus.EXECUTADA]: "Executada",
-  [TaskStatus.PARCIALMENTE_EXECUTADA]: "Parcialmente executada",
-  [TaskStatus.CANCELADA]: "Cancelada",
-  [TaskStatus.ADIADA]: "Adiada",
-};
+import { TASK_STATUS_LABELS } from "../utils/labels";
+import { SelectInput } from "./ui/Field";
 
 interface StatusSelectorProps {
   value: TaskStatus;
   onChange: (status: TaskStatus) => void;
+
+  taskDescription?: string;
 }
 
-export function StatusSelector({ value, onChange }: StatusSelectorProps) {
+export function StatusSelector({
+  value,
+  onChange,
+  taskDescription,
+}: StatusSelectorProps) {
   return (
-    <select
+    <SelectInput
+      aria-label={
+        taskDescription ? `Status da tarefa: ${taskDescription}` : "Status"
+      }
+      fullWidth={false}
+      controlSize="sm"
+      variant="subtle"
       value={value}
       onChange={(e) => onChange(e.target.value as TaskStatus)}
-      className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 focus:border-indigo-500 focus:outline-none"
+      className="min-w-0 flex-1 sm:flex-none"
     >
       {Object.values(TaskStatus).map((status) => (
         <option key={status} value={status}>
-          {LABELS[status]}
+          {TASK_STATUS_LABELS[status]}
         </option>
       ))}
-    </select>
+    </SelectInput>
   );
 }

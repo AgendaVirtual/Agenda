@@ -1,27 +1,15 @@
 import { TaskPriority } from "../types/enums";
-
-const STYLES: Record<TaskPriority, string> = {
-  [TaskPriority.ALTA]: "bg-red-100 text-red-700",
-  [TaskPriority.MEDIA]: "bg-amber-100 text-amber-700",
-  [TaskPriority.BAIXA]: "bg-emerald-100 text-emerald-700",
-};
-
-const LABELS: Record<TaskPriority, string> = {
-  [TaskPriority.ALTA]: "Alta",
-  [TaskPriority.MEDIA]: "Média",
-  [TaskPriority.BAIXA]: "Baixa",
-};
+import { PRIORITY_LABELS, PRIORITY_TONES } from "../utils/labels";
+import { Badge } from "./ui/Badge";
 
 interface PriorityBadgeProps {
   priority: TaskPriority;
 }
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
+  if (priority === TaskPriority.BAIXA) return null;
+
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[priority]}`}
-    >
-      {LABELS[priority]}
-    </span>
+    <Badge tone={PRIORITY_TONES[priority]}>{PRIORITY_LABELS[priority]}</Badge>
   );
 }
