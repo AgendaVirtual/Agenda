@@ -151,7 +151,7 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
 
   return (
     <div className="mt-[26px]">
-      <div className="relative h-9">
+      <div className="relative hidden h-9 overflow-hidden lg:block">
         {pendentes.map((m, i) => {
           const alinhamento = alinhamentos[i];
           return (
@@ -180,7 +180,7 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
         })}
       </div>
 
-      <div className="relative mt-2.5 h-4">
+      <div className="relative mt-2.5 h-4 overflow-hidden">
         <div className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-pill bg-[#ebe5da]" />
         <div
           className="anim-grow absolute left-0 top-1/2 h-[3px] -translate-y-1/2 rounded-pill bg-[#d5cec0]"
@@ -233,7 +233,7 @@ function DayLine({ marcadores, categoriesById, agora }: DayLineProps) {
         )}
       </div>
 
-      <div className="relative mt-2.5 h-4">
+      <div className="relative mt-2.5 h-4 overflow-hidden">
         {HORAS_DA_REGUA.map((h) => (
           <span
             key={h}

@@ -68,8 +68,9 @@ export function TaskForm({
       date,
       priority,
       timeBlockType: timeBlock.timeBlockType,
-      time: isShiftBlock ? null : timeBlock.time,
-      shift: isShiftBlock ? timeBlock.shift : null,
+      ...(isShiftBlock
+        ? { shift: timeBlock.shift }
+        : { time: timeBlock.time }),
     });
   }
 
