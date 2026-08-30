@@ -1,24 +1,36 @@
-﻿#  Planner Virtual - Produtividade & Organização
+<h1>
+  <img src="./frontend/public/nexo_white.svg" width="55" height="55" alt="Nexo" align="absmiddle"> »  
+  Planner Virtual - Produtividade & Organização
+</h1>
 
-Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Programação** na **Universidade Federal do Agreste de Pernambuco (UFAPE)**.
+  Projeto final desenvolvido para a disciplina de **Paradigmas de Linguagens de Programação** na **Universidade Federal do Agreste de Pernambuco (UFAPE)**.
 
  **Professor:** Dimas Cassimiro do Nascimento Filho
 
-## 👥 Equipe (7 Participantes)
+<details>
+<summary><h2><strong>👥 — Equipe (7 Participantes)</strong></h2></summary> 
+  
 1. **[Arthur Oliveira Ramos](https://github.com/thuramos)**
-2. **[Alvaro](Link_do_GitHub)**
+2. **[Álvaro Henrique Nunes de Andrade](https://github.com/alvwaro)**
 3. **[Carlos Gabryel Alves Espinhara](https://github.com/cgabryel0)**
-4. **[Carlos Lucas Feitoza](Link_do_GitHub)**
-5. **[Maria Heoísa da Silva Montebelo](Link_do_GitHub)**
-6. **[Laura Vitória Mendes](Link_do_GitHub)**
-7. **[Riana](Link_do_GitHub)**
+4. **[Carlos Lucas Feitoza](https://github.com/hazdriel)**
+5. **[Maria Heoísa da Silva Montebelo](https://github.com/Heloisamsk)**
+6. **[Laura Vitória Mendes](https://github.com/l4uramendes)**
+7. **[Rianna de Queiroz Tenorio Vaz](https://github.com/riannavaz)**
 
 ---
 
-##  Visão Geral do Sistema
+</details>
+
+
+
+<details>
+<summary><h2><strong>🔖 — Visão Geral do Sistema</strong></h2></summary> 
+  
 O **Planner Virtual** é uma aplicação focada em maximizar a organização pessoal através de uma interface **altamente visual, moderna e intuitiva**. Sabendo que a apresentação visual e a experiência do usuário são cruciais, o sistema conta com um Painel Analítico rico, categorização em cores e feedback imediato de produtividade.
 
-##  Funcionalidades Principais (Meta de Funcionalidades)
+<details>
+<summary><h3><strong>Funcionalidades Principais (Meta de Funcionalidades)</strong></h3></summary> 
 
 *    **Painel Analítico (Dashboard):** Visão geral do dia com tarefas pendentes, metas em andamento, lembretes próximos e um **Indicador Geral de Produtividade** em formato de gráfico.
 *    **Gestão de Tarefas (Time-blocking):** Você informa a data e a hora de início, e opcionalmente a hora de fim. O bloco (meia hora, uma hora ou turno) e o turno do dia saem daí, calculados pelo servidor. A tarefa pode se repetir e pode avisar com a antecedência que você escolher.
@@ -27,9 +39,15 @@ O **Planner Virtual** é uma aplicação focada em maximizar a organização pes
 *    **Lembretes Inteligentes:** Alertas únicos ou recorrentes para reuniões, compras, exercícios, etc.
 *    **Relatórios de Desempenho:** Geração de estatísticas mostrando as semanas, meses e turnos mais produtivos.
 
+</details>
+
 ---
 
-##  Stack Tecnológica & Arquitetura
+</details>
+
+
+<details>
+<summary><h2><strong>💻 — Stack Tecnológica & Arquitetura</strong></h2></summary> 
 
 Como padrão adotado pela equipe (conforme projetos anteriores modulares):
 *   **Frontend:** `TypeScript` (React) + `Tailwind CSS` (Garante uma interface extremamente bonita e responsiva).
@@ -38,7 +56,11 @@ Como padrão adotado pela equipe (conforme projetos anteriores modulares):
 
 ---
 
-## Rodar e publicar
+</details>
+
+
+<details>
+<summary><h2><strong>📌 — Rodar e publicar</strong></h2></summary> 
 
 Local, com Docker (sobe front e back juntos):
 
@@ -49,7 +71,8 @@ docker compose up -d --build
 App em <http://localhost:8090>, API direta em <http://localhost:3100>. As portas
 são diferentes das de desenvolvimento (5173 e 3000) para os dois conviverem.
 
-### Conta de demonstração
+<details>
+<summary><h3><strong>Conta de demonstração</strong></h3></summary> 
 
 Conta nova nasce só com as seis categorias padrão. Para a apresentação, popule
 uma com um mês de dados plausíveis:
@@ -63,7 +86,10 @@ conta se ela não existir, entra se já existir, e não duplica nada se já houv
 dados de hoje. Aponte para outro servidor com `NEXO_API`, e troque as
 credenciais com `NEXO_DEMO_EMAIL` e `NEXO_DEMO_SENHA`.
 
-### Railway
+</details>
+
+<details>
+<summary><h3><strong>Railway</strong></h3></summary> 
 
 Dois serviços a partir deste repositório. O que muda entre eles é o **Root
 Directory**; cada um já traz `Dockerfile` e `railway.json`.
@@ -93,7 +119,11 @@ Passo a passo no Railway:
 7. No frontend, configure `API_URL` com o endereço INTERNO do backend e
    redeploy. Veja o formato logo abaixo.
 
-### O API_URL usa a rede interna, não o domínio público
+</details>
+
+<details>
+<summary><h3><strong>O API_URL usa a rede interna, não o domínio público</strong></h3></summary> 
+
 
 ```
 API_URL=http://SEU-BACKEND.railway.internal:8080
@@ -122,3 +152,7 @@ Três pontos que não são adivinháveis:
 - **O frontend não chama o backend direto.** Ele pede `/api` na própria origem e
   o nginx repassa, o mesmo desenho do proxy do Vite em desenvolvimento. Por isso
   a URL do backend não fica compilada no bundle e não há CORS para configurar.
+
+</details>
+
+</details>
