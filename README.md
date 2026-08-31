@@ -15,7 +15,7 @@
 3. **[Carlos Gabryel Alves Espinhara](https://github.com/cgabryel0)**
 4. **[Carlos Lucas Feitoza](https://github.com/hazdriel)**
 5. **[Maria Heoísa da Silva Montebelo](https://github.com/Heloisamsk)**
-6. **[Laura Vitória Mendes](https://github.com/l4uramendes)**
+6. **[Laura Vitória de Carvalho Mendes](https://github.com/l4uramendes)**
 7. **[Rianna de Queiroz Tenorio Vaz](https://github.com/riannavaz)**
 
 ---
